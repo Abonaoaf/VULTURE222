@@ -83,18 +83,17 @@
 </div>
 
 <script>
-    // --- إعدادات الرابط الجديد ---
-    const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseioio.com/.json";
+    // --- الرابط الصحيح (تم تصحيح firebaseio) ---
+    const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.com/.json";
     let fullData = { clients: [] };
     const params = new URLSearchParams(window.location.search);
 
-    // دالة جلب البيانات (Load)
     async function loadData() {
         showLoading(true);
         try {
             const response = await fetch(DB_URL);
             const data = await response.json();
-            // نضع البيانات في المصفوفة أو ننشئ مصفوفة فارغة إذا كانت القاعدة جديدة
+            // التأكد من تهيئة المصفوفة حتى لو كانت القاعدة فارغة
             fullData = data || { clients: [] };
             if (!fullData.clients) fullData.clients = [];
 
@@ -105,12 +104,11 @@
                 showAdminPanel(); 
             }
         } catch (error) { 
-            console.error("خطأ في جلب البيانات:", error); 
+            console.error("Error:", error); 
         }
         showLoading(false);
     }
 
-    // دالة المزامنة والحفظ (Sync)
     async function syncToCloud() {
         showLoading(true);
         try {
@@ -118,7 +116,6 @@
                 method: 'PUT',
                 body: JSON.stringify(fullData)
             });
-            console.log("تم الحفظ بنجاح");
         } catch (error) { 
             alert("فشلت المزامنة!"); 
         }
@@ -127,7 +124,10 @@
 
     function loadClientView(userId) {
         const c = fullData.clients.find(item => item.name === userId);
-        if (!c) { document.body.innerHTML = "<div style='text-align:center; padding:50px;'><h1>المشترك غير موجود</h1></div>"; return; }
+        if (!c) { 
+            document.body.innerHTML = "<div style='text-align:center; padding:50px;'><h1>المشترك غير موجود</h1></div>"; 
+            return; 
+        }
         document.getElementById('clientView').style.display = 'block';
         document.getElementById('v-name').innerText = "مرحباً: " + c.name;
         document.getElementById('v-phone').innerText = c.phone || 'غير مسجل';
@@ -188,27 +188,38 @@
         if(!data.name || !data.expiry) return alert("أكمل البيانات!");
         if (idx === -1) fullData.clients.push(data); else fullData.clients[idx] = data;
         await syncToCloud();
-        renderClients(); closeModal();
+        renderClients(); 
+        closeModal();
     }
 
     function copyClientUrl(userName) {
         const url = `${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(userName)}`;
-        navigator.clipboard.writeText(url); alert("تم نسخ الرابط");
+        navigator.clipboard.writeText(url); 
+        alert("تم نسخ الرابط");
     }
 
     function editClient(i) {
         openModal();
         document.getElementById('editIndex').value = i;
-        ['name','phone','plan','pass','link','start','expiry'].forEach(id => document.getElementById('in-'+id).value = fullData.clients[i][id] || '');
+        ['name','phone','plan','pass','link','start','expiry'].forEach(id => {
+            document.getElementById('in-'+id).value = fullData.clients[i][id] || '';
+        });
     }
 
-    async function deleteClient(i) { if(confirm("حذف؟")) { fullData.clients.splice(i,1); await syncToCloud(); renderClients(); } }
+    async function deleteClient(i) { 
+        if(confirm("حذف؟")) { 
+            fullData.clients.splice(i,1); 
+            await syncToCloud(); 
+            renderClients(); 
+        } 
+    }
+
     function openModal() { document.getElementById('editIndex').value = "-1"; document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
     function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
     function copyTag(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); alert("تم النسخ!"); }
 
-    // تشغيل الكود الرئيسي
+    // تشغيل الكود
     loadData();
 </script>
 </body>
