@@ -8,13 +8,10 @@
     <style>
         :root { --primary: #007bff; --success: #28a745; --bg: #f4f7f6; --whatsapp: #25d366; --channel: #008069; --danger: #dc3545; --text: #2d3748; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; color: var(--text); }
-        
-        /* شاشة التحميل */
         .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* واجهة المشترك */
         .client-view { background: white; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 100%; max-width: 420px; overflow: hidden; display: none; align-self: center; border: 1px solid rgba(0,0,0,0.05); }
         .client-header { background: linear-gradient(135deg, var(--primary), #0056b3); color: white; padding: 25px; text-align: center; }
         .info-body { padding: 20px; }
@@ -23,7 +20,6 @@
         .value { font-weight: 600; color: #1e293b; font-size: 0.9rem; word-break: break-all; }
         .copy-btn { background: white; border: 1px solid #e2e8f0; color: var(--primary); cursor: pointer; padding: 6px 10px; border-radius: 8px; }
         
-        /* العداد التنازلي */
         .timer-section { background: #f1f5f9; padding: 15px; border-radius: 16px; text-align: center; margin: 15px 0; border: 1px solid #e2e8f0; }
         .timer-display { display: flex; justify-content: center; gap: 5px; margin-top: 10px; direction: ltr; }
         .time-unit { background: white; padding: 8px 4px; border-radius: 8px; min-width: 45px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -32,7 +28,6 @@
 
         .btn-contact { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: bold; margin-bottom: 10px; color: white; font-size: 0.9rem; }
         
-        /* لوحة الإدارة */
         .admin-panel { width: 100%; max-width: 1100px; display: none; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 15px 25px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .btn-add { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
@@ -44,7 +39,6 @@
         .btn-del { background: #fff1f2; color: #e11d48; }
         .btn-link { background: #f0fdf4; color: #16a34a; border: 1px solid #16a34a; }
 
-        /* نافذة الإضافة (المودال) */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .modal-content { background: white; padding: 30px; border-radius: 20px; width: 95%; max-width: 550px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -55,7 +49,7 @@
 </head>
 <body>
 
-<div id="loading" class="loading-overlay"><div class="spinner"></div><p>جاري تحديث البيانات سحابياً...</p></div>
+<div id="loading" class="loading-overlay"><div class="spinner"></div><p>جاري تحديث السحابة...</p></div>
 
 <div id="clientView" class="client-view">
     <div class="client-header"><i class="fas fa-user-shield fa-3x"></i><h2 id="v-name" style="margin:10px 0 0 0"></h2></div>
@@ -64,9 +58,7 @@
         <div class="info-row"><div><span class="label">اسم المستخدم</span><br><span id="v-plan" class="value"></span></div><button class="copy-btn" onclick="copyText('v-plan')"><i class="far fa-copy"></i></button></div>
         <div class="info-row"><div><span class="label">كلمة السر</span><br><span id="v-pass" class="value"></span></div><button class="copy-btn" onclick="copyText('v-pass')"><i class="far fa-copy"></i></button></div>
         <div class="info-row"><div><span class="label">تاريخ البداية</span><br><span class="value" id="v-start"></span></div><div><span class="label">تاريخ النهاية</span><br><span class="value" id="v-end"></span></div></div>
-        
         <div class="timer-section"><span class="label">الوقت المتبقي لانتهاء الخدمة</span><div id="timer" class="timer-display"></div></div>
-        
         <a href="https://abonaoaf.github.io/apps/" class="btn-contact" style="background: #4338ca;"><i class="fas fa-th-large"></i> متجر تطبيقات فولتشر</a>
         <a id="wa-link" href="https://wa.me/966594393012" class="btn-contact" style="background:var(--whatsapp);" target="_blank"><i class="fab fa-whatsapp"></i> الدعم الفني المباشر</a>
         <a href="https://whatsapp.com/channel/0029VaFYcHcAO7RGw0O0QM1E" class="btn-contact" style="background:var(--channel);" target="_blank"><i class="fas fa-bullhorn"></i> قناة قبل الحدث</a>
@@ -74,15 +66,15 @@
 </div>
 
 <div id="adminPanel" class="admin-panel">
-    <div class="admin-header"><h2><i class="fas fa-cloud-upload-alt"></i> لوحة الإدارة السحابية</h2><button class="btn-add" onclick="openModal()"><i class="fas fa-plus"></i> إضافة مشترك جديد</button></div>
+    <div class="admin-header"><h2><i class="fas fa-cloud-upload-alt"></i> الإدارة السحابية</h2><button class="btn-add" onclick="openModal()"><i class="fas fa-plus"></i> إضافة مشترك</button></div>
     <div id="clientsList" class="clients-list"></div>
 </div>
 
 <div id="modal" class="modal">
     <div class="modal-content">
-        <h3 style="text-align:center; color:var(--primary);">إدخال بيانات المشترك</h3><input type="hidden" id="editIndex">
+        <h3 style="text-align:center; color:var(--primary);">بيانات المشترك</h3><input type="hidden" id="editIndex">
         <div class="form-grid">
-            <div class="form-group full"><label>اسم المشترك (للربط)</label><input type="text" id="in-name"></div>
+            <div class="form-group full"><label>اسم العميل (للربط)</label><input type="text" id="in-name"></div>
             <div class="form-group"><label>رقم الجوال</label><input type="text" id="in-phone" placeholder="966xxx"></div>
             <div class="form-group"><label>اسم المستخدم</label><input type="text" id="in-plan"></div>
             <div class="form-group full"><label>كلمة السر</label><input type="text" id="in-pass"></div>
@@ -95,9 +87,8 @@
 </div>
 
 <script>
-    // --- إعدادات الربط ---
     const GIST_ID = '91087ef5d5cd0bc27fca370654a108d1'; 
-    const GITHUB_TOKEN = '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'; // الـ Token الخاص بك
+    const GITHUB_TOKEN = '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'; 
     const FILE_NAME = 'clients.json';
 
     let fullData = { clients: [] };
@@ -109,7 +100,6 @@
             const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
             const data = await res.json();
             if (data.files && data.files[FILE_NAME]) { fullData = JSON.parse(data.files[FILE_NAME].content); }
-
             const userParam = params.get('user');
             if (userParam) {
                 const client = fullData.clients.find(c => c.name === decodeURIComponent(userParam));
