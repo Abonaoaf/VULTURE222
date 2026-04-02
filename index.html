@@ -31,19 +31,22 @@
         .btn-del { background: var(--danger); }
         .btn-copy { background: #64748b; }
         .btn-whatsapp { background: var(--whatsapp); }
+        .btn-channel { background: var(--channel); }
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1001; padding: 20px; }
         .modal-content { background: white; padding: 25px; border-radius: 15px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
         .timer { font-weight: bold; color: var(--danger); background: #fff5f5; padding: 2px 8px; border-radius: 5px; }
+        .copy-tag { cursor: pointer; background: #edf2f7; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; transition: 0.2s; }
+        .copy-tag:hover { background: #e2e8f0; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
 <div class="loading-overlay" id="loading">
     <div class="spinner"></div>
-    <p style="margin-top:15px; font-weight:bold;">جاري المزامنة مع سحابة جوجل...</p>
+    <p style="margin-top:15px; font-weight:bold;">جاري الحفظ في سحابة جوجل...</p>
 </div>
 
 <div class="container">
@@ -74,47 +77,23 @@
         <h3 id="modalTitle">إضافة مشترك جديد</h3>
         <input type="hidden" id="editIndex" value="-1">
         
-        <div class="form-group">
-            <label>اسم المشترك</label>
-            <input type="text" id="in-name" placeholder="الاسم الثلاثي">
-        </div>
-        <div class="form-group">
-            <label>رقم الجوال</label>
-            <input type="text" id="in-phone" placeholder="9665xxxxxxxx">
-        </div>
-        <div class="form-group">
-            <label>الباقة</label>
-            <select id="in-plan">
-                <option value="premium">Premium (مميز)</option>
-                <option value="admin">Admin (إدارة)</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>كلمة المرور</label>
-            <input type="text" id="in-pass">
-        </div>
-        <div class="form-group">
-            <label>رابط النموذج</label>
-            <input type="text" id="in-link" placeholder="https://...">
-        </div>
-        <div class="form-group">
-            <label>تاريخ البدء</label>
-            <input type="date" id="in-start">
-        </div>
-        <div class="form-group">
-            <label>تاريخ الانتهاء</label>
-            <input type="date" id="in-expiry">
-        </div>
+        <div class="form-group"><label>اسم المشترك</label><input type="text" id="name"></div>
+        <div class="form-group"><label>رقم الجوال</label><input type="text" id="phone" placeholder="9665xxxxxxxx"></div>
+        <div class="form-group"><label>الباقة</label><select id="plan"><option value="premium">Premium</option><option value="admin">Admin</option></select></div>
+        <div class="form-group"><label>كلمة المرور</label><input type="text" id="pass"></div>
+        <div class="form-group"><label>رابط النموذج</label><input type="text" id="link"></div>
+        <div class="form-group"><label>تاريخ البدء</label><input type="date" id="start"></div>
+        <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="expiry"></div>
 
         <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="btn btn-edit" style="flex:2" onclick="saveClient()">حفظ ومزامنة</button>
+            <button class="btn btn-edit" style="flex:2" onclick="saveClient()">حفظ ومزامنة ✅</button>
             <button class="btn btn-copy" style="flex:1" onclick="closeModal()">إلغاء</button>
         </div>
     </div>
 </div>
 
 <script>
-    // الرابط السحابي الجديد الخاص بك
+    // الرابط السحابي الخاص بك
     const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.com/.json";
     let fullData = { clients: [] };
 
@@ -125,136 +104,100 @@
             const d = await r.json();
             fullData = d || { clients: [] };
             renderClients();
-        } catch(e) { console.error("Error loading data"); }
+        } catch(e) { console.error("Error"); }
         showLoading(false);
     }
 
-    async function syncToCloud() {
+    async function sync() {
         showLoading(true);
         try {
-            await fetch(DB_URL, {
-                method: 'PUT',
-                body: JSON.stringify(fullData)
-            });
-        } catch(e) { alert("خطأ في المزامنة!"); }
+            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(fullData) });
+        } catch(e) { alert("فشل الحفظ!"); }
         showLoading(false);
     }
 
     function renderClients() {
         const list = document.getElementById('clientsList');
-        const searchTerm = document.getElementById('search').value.toLowerCase();
+        const term = document.getElementById('search').value.toLowerCase();
         list.innerHTML = '';
-        
-        let activeCount = 0;
-        const filtered = fullData.clients.filter(c => 
-            c.name.toLowerCase().includes(searchTerm) || c.phone.includes(searchTerm)
-        );
+        let active = 0;
 
-        filtered.forEach((c, i) => {
-            const isExpired = new Date(c.expiry) < new Date();
-            if(!isExpired) activeCount++;
+        fullData.clients.forEach((c, i) => {
+            if(!c.name.toLowerCase().includes(term) && !c.phone.includes(term)) return;
+            const isExp = new Date(c.expiry) < new Date();
+            if(!isExp) active++;
 
-            const card = document.createElement('div');
-            card.className = 'client-card';
-            card.innerHTML = `
+            const div = document.createElement('div');
+            div.className = 'client-card';
+            div.innerHTML = `
                 <div class="client-header">
-                    <div>
-                        <strong style="font-size:1.1em">${c.name}</strong>
-                        <span class="badge badge-${c.plan}">${c.plan.toUpperCase()}</span>
-                    </div>
-                    <div class="timer" id="timer-${i}">${calculateTimeLeft(c.expiry)}</div>
+                    <div><strong>${c.name}</strong> <span class="badge badge-${c.plan}">${c.plan}</span></div>
+                    <div class="timer">${calculateTime(c.expiry)}</div>
                 </div>
                 <div class="grid-info">
                     <div class="info-item"><i class="fas fa-phone"></i> ${c.phone}</div>
                     <div class="info-item"><i class="fas fa-key"></i> ${c.pass}</div>
-                    <div class="info-item"><i class="fas fa-calendar-alt"></i> ينتهي: ${c.expiry}</div>
+                    <div class="info-item"><i class="fas fa-calendar"></i> ${c.expiry}</div>
                 </div>
                 <div class="actions">
                     <button class="btn btn-edit" onclick="editClient(${i})"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-copy" onclick="copyClientUrl('${c.name}')"><i class="fas fa-link"></i> نسخ الرابط</button>
-                    <button class="btn btn-whatsapp" onclick="sendWhatsApp('${c.phone}', '${c.name}', '${c.pass}', '${c.expiry}')">
-                        <i class="fab fa-whatsapp"></i> واتساب
-                    </button>
+                    <button class="btn btn-whatsapp" onclick="sendWA('${c.phone}','${c.name}','${c.pass}','${c.expiry}')"><i class="fab fa-whatsapp"></i></button>
+                    <button class="btn btn-copy" onclick="copyUrl('${c.name}')"><i class="fas fa-link"></i></button>
                     <button class="btn btn-del" onclick="deleteClient(${i})"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
-            list.appendChild(card);
+                </div>`;
+            list.appendChild(div);
         });
-
         document.getElementById('stat-total').innerText = fullData.clients.length;
-        document.getElementById('stat-active').innerText = activeCount;
+        document.getElementById('stat-active').innerText = active;
     }
 
     async function saveClient() {
-        const idx = parseInt(document.getElementById('editIndex').value);
+        const i = parseInt(document.getElementById('editIndex').value);
         const data = {
-            name: document.getElementById('in-name').value,
-            phone: document.getElementById('in-phone').value,
-            plan: document.getElementById('in-plan').value,
-            pass: document.getElementById('in-pass').value,
-            link: document.getElementById('in-link').value,
-            start: document.getElementById('in-start').value,
-            expiry: document.getElementById('in-expiry').value
+            name: document.getElementById('name').value,
+            phone: document.getElementById('phone').value,
+            plan: document.getElementById('plan').value,
+            pass: document.getElementById('pass').value,
+            link: document.getElementById('link').value,
+            start: document.getElementById('start').value,
+            expiry: document.getElementById('expiry').value
         };
-
-        if(!data.name || !data.expiry) return alert("أكمل البيانات!");
-
-        if (idx === -1) {
-            fullData.clients.push(data);
-        } else {
-            fullData.clients[idx] = data;
-        }
-
-        await syncToCloud();
+        if(!data.name || !data.expiry) return alert("أكمل البيانات");
+        if(i === -1) fullData.clients.push(data); else fullData.clients[i] = data;
+        await sync();
         renderClients();
         closeModal();
     }
 
-    function calculateTimeLeft(expiry) {
-        const diff = new Date(expiry) - new Date();
-        if(diff <= 0) return "منتهي";
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        return `متبقي ${days} يوم`;
-    }
-
-    function sendWhatsApp(phone, name, pass, expiry) {
-        const msg = encodeURIComponent(`أهلاً بك يا ${name}\nتم تفعيل اشتراكك بنجاح ✅\nكلمة المرور: ${pass}\nتاريخ الانتهاء: ${expiry}\nرابط المنصة: ${window.location.origin}`);
-        window.open(`https://wa.me/${phone}?text=${msg}`);
-    }
-
-    function copyClientUrl(userName) {
-        const url = `${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(userName)}`;
-        navigator.clipboard.writeText(url); 
-        alert("تم نسخ الرابط الفريد للمشترك بنجاح ✅");
+    function calculateTime(exp) {
+        const d = new Date(exp) - new Date();
+        return d > 0 ? `متبقي ${Math.floor(d/(864e5))} يوم` : "منتهي";
     }
 
     function editClient(i) {
         openModal();
-        document.getElementById('modalTitle').innerText = "تعديل بيانات المشترك";
         document.getElementById('editIndex').value = i;
         const c = fullData.clients[i];
-        ['name','phone','plan','pass','link','start','expiry'].forEach(id => {
-            document.getElementById('in-'+id).value = c[id] || '';
-        });
+        ['name','phone','plan','pass','link','start','expiry'].forEach(id => document.getElementById(id).value = c[id] || '');
     }
 
     async function deleteClient(i) {
-        if(confirm("هل أنت متأكد من حذف هذا المشترك؟")) {
-            fullData.clients.splice(i, 1);
-            await syncToCloud();
-            renderClients();
-        }
+        if(confirm("حذف؟")) { fullData.clients.splice(i,1); await sync(); renderClients(); }
     }
 
-    function openModal() {
-        document.getElementById('editIndex').value = "-1";
-        document.getElementById('modalTitle').innerText = "إضافة مشترك جديد";
-        document.getElementById('modal').style.display = 'flex';
+    function copyUrl(n) {
+        const u = `${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(n)}`;
+        navigator.clipboard.writeText(u); alert("تم نسخ الرابط ✅");
     }
 
-    function closeModal() { document.getElementById('modal').style.display = 'none'; }
-    function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
+    function sendWA(p,n,ps,ex) {
+        const m = encodeURIComponent(`أهلاً بك ${n}\nكلمة المرور: ${ps}\nالانتهاء: ${ex}`);
+        window.open(`https://wa.me/${p}?text=${m}`);
+    }
 
+    function openModal() { document.getElementById('modal').style.display='flex'; }
+    function closeModal() { document.getElementById('modal').style.display='none'; }
+    function showLoading(s) { document.getElementById('loading').style.display = s?'flex':'none'; }
     window.onload = loadData;
 </script>
 </body>
