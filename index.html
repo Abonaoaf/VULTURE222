@@ -1,33 +1,94 @@
-<script>
-const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.com/.json";
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة إدارة Vulture-App</title>
+    <style>
+        /* التنسيق الذي تفضله: أزرق متدرج وحركات نبض */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; outline: none; }
+        button { background: #ef4444; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #dc2626; transform: scale(1.02); }
+        .pulse { animation: pulse-animation 2s infinite; }
+        @keyframes pulse-animation { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        #loading { display: none; color: #fbbf24; font-weight: bold; margin-bottom: 10px; }
+    </style>
+</head>
+<body oncontextmenu="return false;"> <h2>لوحة إدارة المشتركين</h2>
+    <div id="loading">جاري المزامنة مع سحابة جوجل...</div>
 
-// وظيفة جلب البيانات عند فتح الصفحة
-async function loadClients() {
-    try {
-        const response = await fetch(DB_URL);
-        const data = await response.json();
-        fullData = data || { clients: [] };
-        renderClients(); // وظيفة عرض المشتركين في اللوحة
-    } catch (e) {
-        console.error("خطأ في جلب البيانات");
-    }
-}
+    <div class="container">
+        <input type="text" id="in-name" placeholder="اسم المشترك">
+        <select id="in-plan">
+            <option value="admin">Admin (الإدارة)</option>
+            <option value="premium">Premium (مميز)</option>
+        </select>
+        <input type="password" id="in-pass" placeholder="كلمة المرور">
+        <input type="date" id="in-expiry">
+        <button class="pulse" onclick="addNewClient()">حفظ ومزامنة فورية ✅</button>
+    </div>
 
-// وظيفة حفظ ومزامنة البيانات (بدون Token!)
-async function saveToCloud() {
-    showLoading(true);
-    try {
-        await fetch(DB_URL, {
-            method: 'PUT',
-            body: JSON.stringify(fullData)
-        });
-        alert("تم الحفظ والمزامنة في سحابة جوجل بنجاح ✅");
-    } catch (e) {
-        alert("حدث خطأ أثناء الحفظ، تأكد من اتصال الإنترنت");
-    }
-    showLoading(false);
-}
+    <div id="client-list" style="margin-top: 20px; width: 90%; max-width: 500px;"></div>
 
-// استدعاء الجلب عند التحميل
-window.onload = loadClients;
-</script>
+    <script>
+        // الرابط الخاص بقاعدة بياناتك التي أنشأتها
+        const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.com/.json";
+        let fullData = { clients: [] };
+
+        // جلب البيانات فور فتح الصفحة
+        async function loadData() {
+            showLoading(true);
+            try {
+                const response = await fetch(DB_URL);
+                const data = await response.json();
+                if (data && data.clients) {
+                    fullData = data;
+                    renderClients();
+                }
+            } catch (e) { console.error("خطأ في الاتصال"); }
+            showLoading(false);
+        }
+
+        async function addNewClient() {
+            const name = document.getElementById('in-name').value;
+            const plan = document.getElementById('in-plan').value;
+            const pass = document.getElementById('in-pass').value;
+            const expiry = document.getElementById('in-expiry').value;
+
+            if(!name || !pass || !expiry) return alert("يرجى إكمال البيانات");
+
+            const newClient = { name, plan, pass, expiry };
+            fullData.clients.push(newClient);
+
+            showLoading(true);
+            try {
+                await fetch(DB_URL, {
+                    method: 'PUT',
+                    body: JSON.stringify(fullData)
+                });
+                alert("تمت الإضافة والمزامنة بنجاح!");
+                renderClients();
+            } catch (e) { alert("فشل الحفظ"); }
+            showLoading(false);
+        }
+
+        function renderClients() {
+            const list = document.getElementById('client-list');
+            list.innerHTML = "";
+            fullData.clients.forEach((c, index) => {
+                list.innerHTML += `<div style="background:white; color:black; padding:10px; margin:5px; border-radius:5px;">
+                    <b>${c.name}</b> - ${c.expiry}
+                </div>`;
+            });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? "block" : "none";
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>
