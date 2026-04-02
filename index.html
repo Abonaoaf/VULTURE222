@@ -46,7 +46,7 @@
 
 <div class="loading-overlay" id="loading">
     <div class="spinner"></div>
-    <p style="margin-top:15px; font-weight:bold;">جاري الحفظ والمزامنة...</p>
+    <p style="margin-top:15px; font-weight:bold;">جاري الاتصال بسحابة جوجل...</p>
 </div>
 
 <div class="container">
@@ -68,7 +68,6 @@
     </div>
 
     <input type="text" class="search-box" id="search" placeholder="ابحث باسم المشترك أو رقم الجوال..." oninput="renderClients()">
-
     <div id="clientsList"></div>
 </div>
 
@@ -76,7 +75,6 @@
     <div class="modal-content">
         <h3 id="modalTitle">إضافة مشترك جديد</h3>
         <input type="hidden" id="editIndex" value="-1">
-        
         <div class="form-group"><label>اسم المشترك</label><input type="text" id="in-name"></div>
         <div class="form-group"><label>رقم الجوال</label><input type="text" id="in-phone" placeholder="9665xxxxxxxx"></div>
         <div class="form-group"><label>الباقة</label><select id="in-plan"><option value="premium">Premium</option><option value="admin">Admin</option></select></div>
@@ -84,7 +82,6 @@
         <div class="form-group"><label>رابط النموذج</label><input type="text" id="in-link"></div>
         <div class="form-group"><label>تاريخ البدء</label><input type="date" id="in-start"></div>
         <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="in-expiry"></div>
-
         <div style="display:flex; gap:10px; margin-top:20px;">
             <button class="btn btn-edit" style="flex:2" onclick="saveClient()">حفظ ومزامنة ✅</button>
             <button class="btn btn-copy" style="flex:1" onclick="closeModal()">إلغاء</button>
@@ -93,52 +90,44 @@
 </div>
 
 <script>
-    // الرابط السحابي الخاص بك
     const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.com/.json";
     let fullData = { clients: [] };
 
     async function loadData() {
         showLoading(true);
         try {
-            const response = await fetch(DB_URL);
-            const data = await response.json();
-            fullData = data || { clients: [] };
+            const r = await fetch(DB_URL);
+            const d = await r.json();
+            fullData = d || { clients: [] };
             renderClients();
-        } catch (error) { console.error("Error loading data"); }
+        } catch(e) { console.error("Error"); }
         showLoading(false);
     }
 
     async function syncToCloud() {
         showLoading(true);
         try {
-            await fetch(DB_URL, {
-                method: 'PUT',
-                body: JSON.stringify(fullData)
-            });
-        } catch (error) { alert("حدث خطأ في المزامنة!"); }
+            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(fullData) });
+        } catch(e) { alert("خطأ في المزامنة!"); }
         showLoading(false);
     }
 
     function renderClients() {
         const list = document.getElementById('clientsList');
-        const searchTerm = document.getElementById('search').value.toLowerCase();
+        const term = document.getElementById('search').value.toLowerCase();
         list.innerHTML = '';
-        
-        let activeCount = 0;
-        fullData.clients.forEach((c, i) => {
-            if (!c.name.toLowerCase().includes(searchTerm) && !c.phone.includes(searchTerm)) return;
+        let active = 0;
 
-            const isExpired = new Date(c.expiry) < new Date();
-            if (!isExpired) activeCount++;
+        fullData.clients.forEach((c, i) => {
+            if (!c.name.toLowerCase().includes(term) && !c.phone.includes(term)) return;
+            const isExp = new Date(c.expiry) < new Date();
+            if (!isExp) active++;
 
             const card = document.createElement('div');
             card.className = 'client-card';
             card.innerHTML = `
                 <div class="client-header">
-                    <div>
-                        <strong style="font-size:1.1em">${c.name}</strong>
-                        <span class="badge badge-${c.plan}">${c.plan.toUpperCase()}</span>
-                    </div>
+                    <div><strong>${c.name}</strong> <span class="badge badge-${c.plan}">${c.plan.toUpperCase()}</span></div>
                     <div class="timer">${calculateTimeLeft(c.expiry)}</div>
                 </div>
                 <div class="grid-info">
@@ -148,16 +137,14 @@
                 </div>
                 <div class="actions">
                     <button class="btn btn-edit" onclick="editClient(${i})"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-copy" onclick="copyClientUrl('${c.name}')"><i class="fas fa-link"></i></button>
-                    <button class="btn btn-whatsapp" onclick="sendWhatsApp('${c.phone}', '${c.name}', '${c.pass}', '${c.expiry}')"><i class="fab fa-whatsapp"></i></button>
+                    <button class="btn btn-copy" onclick="copyUrl('${c.name}')"><i class="fas fa-link"></i></button>
+                    <button class="btn btn-whatsapp" onclick="sendWA('${c.phone}','${c.name}','${c.pass}','${c.expiry}')"><i class="fab fa-whatsapp"></i></button>
                     <button class="btn btn-del" onclick="deleteClient(${i})"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
+                </div>`;
             list.appendChild(card);
         });
-
         document.getElementById('stat-total').innerText = fullData.clients.length;
-        document.getElementById('stat-active').innerText = activeCount;
+        document.getElementById('stat-active').innerText = active;
     }
 
     async function saveClient() {
@@ -171,57 +158,30 @@
             start: document.getElementById('in-start').value,
             expiry: document.getElementById('in-expiry').value
         };
-
-        if (!data.name || !data.expiry) return alert("أكمل البيانات!");
-
-        if (idx === -1) fullData.clients.push(data);
-        else fullData.clients[idx] = data;
-
-        await syncToCloud();
-        renderClients();
-        closeModal();
+        if(!data.name || !data.expiry) return alert("أكمل البيانات");
+        if(idx === -1) fullData.clients.push(data); else fullData.clients[idx] = data;
+        await syncToCloud(); renderClients(); closeModal();
     }
 
     function calculateTimeLeft(expiry) {
-        const diff = new Date(expiry) - new Date();
-        if (diff <= 0) return "منتهي";
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        return `متبقي ${days} يوم`;
+        const d = new Date(expiry) - new Date();
+        return d > 0 ? `متبقي ${Math.floor(d/864e5)} يوم` : "منتهي";
     }
 
     function editClient(i) {
         openModal();
         document.getElementById('editIndex').value = i;
-        const c = fullData.clients[i];
         ['name','phone','plan','pass','link','start','expiry'].forEach(id => {
-            document.getElementById('in-'+id).value = c[id] || '';
+            document.getElementById('in-'+id).value = fullData.clients[i][id] || '';
         });
-        document.getElementById('modalTitle').innerText = "تعديل بيانات المشترك";
     }
 
-    async function deleteClient(i) {
-        if (confirm("هل أنت متأكد من حذف هذا المشترك؟")) {
-            fullData.clients.splice(i, 1);
-            await syncToCloud();
-            renderClients();
-        }
-    }
-
-    function copyClientUrl(n) {
-        const url = `${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(n)}`;
-        navigator.clipboard.writeText(url);
-        alert("تم نسخ الرابط بنجاح");
-    }
-
-    function sendWhatsApp(ph, n, ps, ex) {
-        const msg = encodeURIComponent(`أهلاً بك ${n}\nكلمة المرور: ${ps}\nالانتهاء: ${ex}`);
-        window.open(`https://wa.me/${ph}?text=${msg}`);
-    }
-
-    function openModal() { document.getElementById('editIndex').value = "-1"; document.getElementById('modalTitle').innerText = "إضافة مشترك جديد"; document.getElementById('modal').style.display = 'flex'; }
-    function closeModal() { document.getElementById('modal').style.display = 'none'; }
-    function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
-
+    async function deleteClient(i) { if(confirm("حذف؟")) { fullData.clients.splice(i,1); await syncToCloud(); renderClients(); } }
+    function copyUrl(n) { navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(n)}`); alert("تم نسخ الرابط"); }
+    function sendWA(ph, n, ps, ex) { window.open(`https://wa.me/${ph}?text=${encodeURIComponent('أهلاً بك '+n+'\nكلمة المرور: '+ps+'\nالانتهاء: '+ex)}`); }
+    function openModal() { document.getElementById('editIndex').value = "-1"; document.getElementById('modal').style.display='flex'; }
+    function closeModal() { document.getElementById('modal').style.display='none'; }
+    function showLoading(s) { document.getElementById('loading').style.display = s?'flex':'none'; }
     window.onload = loadData;
 </script>
 </body>
