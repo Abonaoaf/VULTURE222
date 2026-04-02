@@ -6,7 +6,6 @@
     <title>منصة المشتركين | فولتشر - نسخة GitHub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* التنسيقات الأصلية الخاصة بمنصتك */
         :root { --primary: #007bff; --success: #28a745; --bg: #f4f7f6; --whatsapp: #25d366; --channel: #008069; --danger: #dc3545; --text: #2d3748; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; color: var(--text); }
         .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
@@ -45,7 +44,7 @@
 </head>
 <body>
 
-<div id="loading" class="loading-overlay"><div class="spinner"></div><p>جاري تحميل البيانات من GitHub...</p></div>
+<div id="loading" class="loading-overlay"><div class="spinner"></div><p>جاري تحميل البيانات...</p></div>
 
 <div id="clientView" class="client-view">
     <div class="client-header"><i class="fas fa-user-shield fa-3x"></i><h2 id="v-name" style="margin:10px 0 0 0"></h2></div>
@@ -63,7 +62,7 @@
 </div>
 
 <div id="adminPanel" class="admin-panel">
-    <div class="admin-header"><h2><i class="fas fa-cloud-upload-alt"></i> إدارة GitHub Gist</h2><button class="btn-add" onclick="openModal()"><i class="fas fa-plus"></i> إضافة مشترك</button></div>
+    <div class="admin-header"><h2><i class="fas fa-cloud-upload-alt"></i> إدارة المشتركين عبر GitHub</h2><button class="btn-add" onclick="openModal()"><i class="fas fa-plus"></i> إضافة مشترك</button></div>
     <div id="clientsList" class="clients-list"></div>
 </div>
 
@@ -84,9 +83,9 @@
 </div>
 
 <script>
-    // --- إعدادات GitHub (يجب تعبئتها ليعمل الكود) ---
+    // --- هام: استبدل القيم أدناه بالقيم الحقيقية ---
     const GIST_ID = 'ضع_هنا_رقم_الـ_GIST_الخاص_بك'; 
-    const GITHUB_TOKEN = 'ضع_هنا_الـ_TOKEN_الخاص_بك';
+    const GITHUB_TOKEN = 'ghp_ضع_هنا_الـ_TOKEN_الخاص_بك';
     const FILE_NAME = 'clients.json';
 
     let fullData = { clients: [] };
@@ -95,22 +94,18 @@
     async function init() {
         showLoading(true);
         try {
-            // جلب البيانات من واجهة برمجة تطبيقات جيت هاب
             const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
                 headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
             });
             const data = await res.json();
-            
-            // قراءة محتوى الملف النصي وتحويله لكائن JSON
             if (data.files && data.files[FILE_NAME]) {
                 fullData = JSON.parse(data.files[FILE_NAME].content);
             }
-
             const user = params.get('user');
             if (user) { loadClientView(decodeURIComponent(user)); } else { showAdminPanel(); }
         } catch (e) { 
-            console.error("فشل تحميل البيانات من جيت هاب", e);
-            alert("خطأ في الاتصال بقاعدة بيانات جيت هاب!");
+            console.error("Connection Error", e);
+            alert("تأكد من GIST_ID والـ Token (عطل الترجمة التلقائية للمتصفح)");
         }
         showLoading(false);
     }
@@ -118,8 +113,7 @@
     async function syncToCloud() {
         showLoading(true);
         try {
-            // إرسال التحديثات لملف الـ Gist باستخدام طريقة PATCH
-            const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+            await fetch(`https://api.github.com/gists/${GIST_ID}`, {
                 method: 'PATCH',
                 headers: { 
                     'Authorization': `token ${GITHUB_TOKEN}`,
@@ -133,15 +127,10 @@
                     }
                 })
             });
-            if (!response.ok) throw new Error("فشل التحديث");
-            console.log("تمت المزامنة بنجاح");
-        } catch (e) { 
-            alert("فشلت المزامنة! تأكد من صلاحية الـ Token."); 
-        }
+        } catch (e) { alert("فشلت المزامنة!"); }
         showLoading(false);
     }
 
-    // بقية الدوال التشغيلية (نفس منطق كودك الأصلي تماماً)
     function loadClientView(userId) {
         const c = fullData.clients.find(item => item.name === userId);
         if (!c) { document.body.innerHTML = "<div style='text-align:center; padding:50px;'><h1>المشترك غير موجود</h1></div>"; return; }
@@ -152,10 +141,7 @@
         document.getElementById('v-pass').innerText = c.pass;
         document.getElementById('v-start').innerText = c.start;
         document.getElementById('v-end').innerText = c.expiry;
-        setInterval(() => { 
-            const timeData = calculateTime(c.expiry);
-            document.getElementById('timer').innerHTML = getTimeHTML(timeData); 
-        }, 1000);
+        setInterval(() => { document.getElementById('timer').innerHTML = getTimeHTML(calculateTime(c.expiry)); }, 1000);
     }
 
     function calculateTime(expiry) {
@@ -177,7 +163,6 @@
 
     function renderClients() {
         const list = document.getElementById('clientsList');
-        if (!fullData.clients) fullData.clients = [];
         list.innerHTML = fullData.clients.map((c, i) => `
             <div class="client-item">
                 <h3 style="color:var(--primary); margin:0;">${c.name}</h3>
@@ -216,26 +201,15 @@
 
     function editClient(i) {
         openModal(); document.getElementById('editIndex').value = i;
-        const c = fullData.clients[i];
-        ['name','phone','plan','pass','link','start','expiry'].forEach(id => {
-            document.getElementById('in-'+id).value = c[id] || '';
-        });
+        ['name','phone','plan','pass','link','start','expiry'].forEach(id => document.getElementById('in-'+id).value = fullData.clients[i][id] || '');
     }
 
-    async function deleteClient(i) { 
-        if(confirm("هل أنت متأكد من حذف هذا المشترك؟")) { 
-            fullData.clients.splice(i,1); 
-            await syncToCloud(); 
-            renderClients(); 
-        } 
-    }
-
+    async function deleteClient(i) { if(confirm("حذف؟")) { fullData.clients.splice(i,1); await syncToCloud(); renderClients(); } }
     function openModal() { document.getElementById('editIndex').value = "-1"; document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
     function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
-    function copyTag(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); alert("تم نسخ النص!"); }
+    function copyTag(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); alert("تم النسخ!"); }
 
-    // بدء التطبيق
     init();
 </script>
 </body>
