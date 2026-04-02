@@ -85,7 +85,7 @@
 <script>
     // --- بيانات الربط السحابي ---
     const GIST_ID = '91087ef5d5cd0bc27fca370654a108d1'; 
-    const GITHUB_TOKEN = 'ضع_هنا_الـ_TOKEN_الخاص_بك'; // ضع الرمز الذي يبدأ بـ ghp_ هنا
+    const GITHUB_TOKEN = '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'; 
     const FILE_NAME = 'clients.json';
 
     let fullData = { clients: [] };
@@ -104,7 +104,7 @@
             const user = params.get('user');
             if (user) { loadClientView(decodeURIComponent(user)); } else { showAdminPanel(); }
         } catch (e) { 
-            alert("حدث خطأ في الاتصال! تأكد من الـ Token وعطل ترجمة المتصفح.");
+            alert("تأكد من تعطيل ترجمة المتصفح!");
         }
         showLoading(false);
     }
