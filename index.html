@@ -2,176 +2,170 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر تطبيقات فولتشر السحابي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>إدارة فولتشر | VULTURE222</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #4338ca; --secondary: #6366f1; --bg: #f8fafc; --white: #ffffff; --text: #1e293b; --success: #10b981; --danger: #ef4444; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); }
-        .header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 30px 20px; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .container { padding: 20px; max-width: 800px; margin: auto; }
+        :root { --primary: #1e293b; --accent: #3b82f6; --bg: #f1f5f9; --white: #ffffff; --danger: #ef4444; --success: #10b981; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: var(--primary); }
         
-        /* لوحة الإدارة */
-        #adminPanel { display: none; background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px; border: 2px solid var(--primary); }
-        .input-group { margin-bottom: 15px; text-align: right; }
-        .input-group label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; color: #475569; }
-        .input-group input, .input-group textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
-        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .header-bar { background: var(--white); padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header-bar h2 { font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 8px; }
         
-        /* تصميم كروت التطبيقات */
-        .app-card { background: var(--white); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .app-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .app-img { width: 70px; height: 70px; border-radius: 15px; object-fit: cover; border: 1px solid #eee; }
-        .app-info h3 { margin: 0; color: var(--primary); font-size: 1.1rem; }
-        .app-code { background: #fff1f2; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; color: #e11d48; display: inline-block; margin-top: 5px; }
-        .app-desc { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; line-height: 1.6; }
+        .btn-main { background: var(--success); color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; }
+
+        /* منطقة الحقول المخفية تظهر عند الإضافة/التعديل */
+        #formSection { display: none; background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--accent); }
+        .client-form { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        @media (min-width: 600px) { .client-form { grid-template-columns: 1fr 1fr; } }
+        input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 14px; }
+        .full { grid-column: 1 / -1; }
+
+        /* تصميم البطاقات مثل الصورة تماماً */
+        .apps-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 600px) { .apps-grid { grid-template-columns: 1fr 1fr; } }
         
-        /* حقل الرابط للنسخ */
-        .link-box { display: flex; align-items: center; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 8px; gap: 10px; }
-        .link-text { flex-grow: 1; font-size: 0.8rem; color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: ltr; }
-        .btn-copy { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
+        .client-card { background: var(--white); border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; position: relative; }
+        .client-card h3 { color: var(--accent); margin: 0 0 10px 0; font-size: 1rem; text-align: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+        .info-row { display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; color: #64748b; margin-bottom: 15px; text-align: center; }
         
-        .loading { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; gap: 10px; }
+        .card-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; border-top: 1px solid #f1f5f9; padding-top: 12px; }
+        .action-btn { border: none; padding: 8px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        
+        .btn-link { background: #dcfce7; color: #15803d; grid-column: span 3; margin-bottom: 5px; border: 1px solid #bbf7d0; }
+        .btn-edit { background: #dbeafe; color: #1d4ed8; }
+        .btn-delete { background: #fee2e2; color: #b91c1c; }
+
+        .loading-overlay { position: fixed; inset: 0; background: white; display: flex; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; }
     </style>
 </head>
 <body>
 
-<div id="loading" class="loading">
-    <i class="fas fa-spinner fa-spin fa-3x" style="color:var(--primary)"></i>
-    <span style="font-weight:bold; color:var(--primary)">جاري المزامنة السحابية...</span>
+<div id="loadingOverlay" class="loading-overlay">
+    <i class="fas fa-sync fa-spin fa-3x" style="color:var(--accent)"></i>
+    <p>جاري تحميل البيانات السحابية...</p>
 </div>
 
-<div class="header">
-    <h1><i class="fas fa-store"></i> متجر تطبيقات فولتشر</h1>
-    <p>الإدارة السحابية الموحدة (اختارها وبس)</p>
+<div class="header-bar">
+    <h2><i class="fas fa-cloud-upload-alt"></i> الإدارة السحابية</h2>
+    <button class="btn-main" onclick="toggleForm()"><i class="fas fa-plus"></i> إضافة مشترك</button>
 </div>
 
-<div class="container">
-    <div id="adminPanel">
-        <div style="margin-bottom:15px; color:var(--primary); border-bottom:1px solid #eee; padding-bottom:10px;">
-            <b><i class="fas fa-plus-circle"></i> إضافة تطبيق جديد للمتجر</b>
-        </div>
-        <div class="input-group"><label>اسم التطبيق</label><input type="text" id="appName" placeholder="مثال: تطبيق فولتشر برو"></div>
-        <div class="input-group"><label>كود التطبيق (Downloader)</label><input type="text" id="appCode" placeholder="مثال: 12345"></div>
-        <div class="input-group"><label>شرح التطبيق (اختياري)</label><textarea id="appDesc" rows="2" placeholder="اكتب وصفاً للطلاب..."></textarea></div>
-        <div class="input-group"><label>رابط التحميل المباشر</label><input type="text" id="appLink" placeholder="ضع رابط ملف الـ APK هنا"></div>
-        <div class="input-group"><label>صورة التطبيق (من الجهاز)</label><input type="file" id="appImg" accept="image/*" onchange="previewImage(this)"></div>
-        <center><img id="imagePreview" style="display:none; width:60px; height:60px; margin-bottom:15px; border-radius:12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"></center>
-        <button class="btn-save" onclick="addApp()">حفظ ونشر التطبيق</button>
+<div id="formSection">
+    <div class="client-form">
+        <input type="text" id="cName" placeholder="اسم المشترك">
+        <input type="text" id="cPhone" placeholder="رقم الجوال">
+        <input type="text" id="cUser" placeholder="اسم المستخدم">
+        <input type="text" id="cPass" placeholder="الرقم السري">
+        <input type="text" id="cLink" class="full" placeholder="الرابط المباشر">
+        <input type="date" id="cStart" title="تاريخ البداية">
+        <input type="date" id="cEnd" title="تاريخ النهاية">
+        <button class="btn-main full" id="mainBtn" onclick="addClient()" style="background:var(--accent); padding:15px;">حفظ المشترك</button>
     </div>
-
-    <div id="appsGrid"></div>
 </div>
+
+<div class="apps-grid" id="clientsGrid"></div>
 
 <script>
     const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.com/.json";
-    let fullData = { clients: [], apps: [] };
-    let selectedImageBase64 = "";
+    const ADMIN_KEY = "123";
 
-    // 1. جلب البيانات والتأكد من وجود القوائم الحالية
+    let globalData = { clients: [], apps: [] };
+    let editIndex = -1;
+
     async function init() {
-        showLoading(true);
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('admin') !== ADMIN_KEY) {
+            document.getElementById('loadingOverlay').innerHTML = "⚠️ وصول غير مصرح به";
+            return;
+        }
         try {
             const res = await fetch(DB_URL);
             const data = await res.json();
             if (data) {
-                fullData.clients = data.clients || []; // حفظ قائمة العملاء الحالية
-                fullData.apps = data.apps || [];
+                globalData.clients = data.clients || [];
+                globalData.apps = data.apps || [];
             }
-            
-            if (new URLSearchParams(window.location.search).get('admin') === '123') {
-                document.getElementById('adminPanel').style.display = 'block';
-            }
-            renderApps();
-        } catch (e) { alert("خطأ في الاتصال بالسحابة!"); }
-        showLoading(false);
+            document.getElementById('loadingOverlay').style.display = 'none';
+            renderClients();
+        } catch (e) {
+            console.error("Fetch Error");
+        }
     }
 
-    // 2. عرض التطبيقات في الصفحة
-    function renderApps() {
-        const isAdmin = new URLSearchParams(window.location.search).get('admin') === '123';
-        const grid = document.getElementById('appsGrid');
-        
-        if (fullData.apps.length === 0) {
-            grid.innerHTML = "<p style='text-align:center; color:#94a3b8;'>لا توجد تطبيقات مضافة حالياً.</p>";
-            return;
-        }
-
-        grid.innerHTML = fullData.apps.map((app, i) => `
-            <div class="app-card">
-                <div class="app-header">
-                    <img src="${app.img}" class="app-img">
-                    <div class="app-info">
-                        <h3>${app.name}</h3>
-                        <span class="app-code">كود: ${app.code}</span>
-                    </div>
+    function renderClients() {
+        const grid = document.getElementById('clientsGrid');
+        grid.innerHTML = globalData.clients.slice().reverse().map((c, i) => {
+            const idx = globalData.clients.length - 1 - i;
+            return `
+            <div class="client-card">
+                <h3>${c.name}</h3>
+                <div class="info-row">
+                    <span>الجوال: ${c.phone || '-'} | النهاية: ${c.end || '-'}</span>
+                    <span style="color:#94a3b8">المستخدم: ${c.user || '-'}</span>
                 </div>
-                ${app.desc ? `<div class="app-desc">${app.desc}</div>` : ''}
-                <div class="link-box">
-                    <span class="link-text" id="url-${i}">${app.link}</span>
-                    <button class="btn-copy" onclick="copyText('url-${i}')"><i class="fas fa-copy"></i> نسخ</button>
+                <div class="card-actions">
+                    <button class="action-btn btn-link" onclick="copyText('${c.link}')"><i class="fas fa-link"></i> الرابط</button>
+                    <button class="action-btn btn-edit" onclick="editClient(${idx})"><i class="fas fa-edit"></i></button>
+                    <button class="action-btn btn-delete" onclick="deleteClient(${idx})"><i class="fas fa-trash"></i></button>
                 </div>
-                ${isAdmin ? `<button onclick="deleteApp(${i})" style="margin-top:15px; background:none; border:none; color:var(--danger); cursor:pointer; font-weight:bold;"><i class="fas fa-trash"></i> حذف من المتجر</button>` : ''}
             </div>
-        `).join('');
+        `}).join('');
     }
 
-    // 3. معاينة الصورة قبل الرفع
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => { 
-                selectedImageBase64 = e.target.result;
-                document.getElementById('imagePreview').src = selectedImageBase64;
-                document.getElementById('imagePreview').style.display = 'block';
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
+    function toggleForm() {
+        const fs = document.getElementById('formSection');
+        fs.style.display = fs.style.display === 'block' ? 'none' : 'block';
     }
 
-    // 4. الحفظ الآمن (يجلب آخر نسخة ثم يضيف عليها لضمان عدم المسح)
-    async function addApp() {
-        const name = document.getElementById('appName').value;
-        const code = document.getElementById('appCode').value;
-        const link = document.getElementById('appLink').value;
-        const desc = document.getElementById('appDesc').value;
+    function editClient(i) {
+        const c = globalData.clients[i];
+        document.getElementById('cName').value = c.name;
+        document.getElementById('cPhone').value = c.phone;
+        document.getElementById('cUser').value = c.user;
+        document.getElementById('cPass').value = c.pass;
+        document.getElementById('cLink').value = c.link;
+        document.getElementById('cStart').value = c.start;
+        document.getElementById('cEnd').value = c.end;
+        editIndex = i;
+        document.getElementById('formSection').style.display = 'block';
+        document.getElementById('mainBtn').innerText = "تحديث البيانات الآن";
+        window.scrollTo(0,0);
+    }
 
-        if (!name || !link || !selectedImageBase64 || !code) {
-            return alert("يرجى إكمال البيانات: الاسم، الكود، الرابط، والصورة!");
-        }
+    async function addClient() {
+        const name = document.getElementById('cName').value;
+        if (!name) return alert("أدخل الاسم");
+        document.getElementById('loadingOverlay').style.display = 'flex';
         
-        showLoading(true);
-        // إعادة جلب البيانات للتأكد من وجود قائمة العملاء قبل الحفظ
-        const res = await fetch(DB_URL);
-        const latestData = await res.json();
-        if (latestData) {
-            fullData.clients = latestData.clients || [];
-            fullData.apps = latestData.apps || [];
-        }
+        const client = {
+            name: name, phone: document.getElementById('cPhone').value,
+            user: document.getElementById('cUser').value, pass: document.getElementById('cPass').value,
+            link: document.getElementById('cLink').value, start: document.getElementById('cStart').value,
+            end: document.getElementById('cEnd').value
+        };
 
-        fullData.apps.push({ name, code, link, desc, img: selectedImageBase64 });
-        
-        await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(fullData) });
+        if (editIndex > -1) { globalData.clients[editIndex] = client; editIndex = -1; }
+        else { globalData.clients.push(client); }
+
+        await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(globalData) });
         location.reload();
     }
 
-    // 5. حذف تطبيق
-    async function deleteApp(i) {
-        if(confirm("هل أنت متأكد من حذف هذا التطبيق؟")) {
-            showLoading(true);
-            fullData.apps.splice(i, 1);
-            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(fullData) });
+    async function deleteClient(i) {
+        if (confirm("حذف المشترك؟")) {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            globalData.clients.splice(i, 1);
+            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(globalData) });
             location.reload();
         }
     }
 
-    function copyText(id) {
-        const text = document.getElementById(id).innerText;
-        navigator.clipboard.writeText(text).then(() => alert("تم نسخ الرابط بنجاح!"));
+    function copyText(txt) {
+        navigator.clipboard.writeText(txt).then(() => alert("تم نسخ الرابط!"));
     }
 
-    function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
-    
     init();
 </script>
 </body>
