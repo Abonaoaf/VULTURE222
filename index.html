@@ -55,7 +55,11 @@
         <div class="info-row"><div><span class="label">اسم المستخدم</span><br><span id="v-plan" class="value"></span></div><button class="copy-btn" onclick="copyTag('v-plan')"><i class="far fa-copy"></i></button></div>
         <div class="info-row"><div><span class="label">كلمة السر</span><br><span id="v-pass" class="value"></span></div><button class="copy-btn" onclick="copyTag('v-pass')"><i class="far fa-copy"></i></button></div>
         <div class="timer-section"><span class="label">الوقت المتبقي للانتهاء</span><div id="timer" class="timer-display"></div></div>
-        <a href="https://abonaoaf.github.io/apps/" class="btn-contact" style="background: #4338ca; border: 2px solid #fff;"><i class="fas fa-th-large"></i> متجر تطبيقات فولتشر </a>
+        
+        <a href="https://abonaoaf.github.io/az/" class="btn-contact" style="background: #4338ca; border: 2px solid #fff;">
+            <i class="fas fa-th-large"></i> متجر تطبيقات فولتشر 
+        </a>
+        
         <a href="https://wa.me/966594393012" class="btn-contact" style="background:var(--whatsapp);" target="_blank"><i class="fab fa-whatsapp"></i> الدعم الفني المباشر</a>
         <a href="https://whatsapp.com/channel/0029VaFYcHcAO7RGw0O0QM1E" class="btn-contact" style="background:var(--channel);" target="_blank"><i class="fas fa-bullhorn"></i> تابعنا على قناة قبل الحدث</a>
     </div>
@@ -88,7 +92,6 @@
     const params = new URLSearchParams(window.location.search);
 
     async function loadData() {
-        // نظهر مؤشر التحميل فقط عند أول تشغيل، وفي التحديث التلقائي نجعله "صامتاً"
         const isInitialLoad = !document.getElementById('clientView').style.display && !document.getElementById('adminPanel').style.display;
         if (isInitialLoad) showLoading(true);
 
@@ -109,7 +112,6 @@
         if (isInitialLoad) showLoading(false);
     }
 
-    // دالة لتحديث البيانات على الشاشة دون تكرار الـ Interval الخاص بالعداد
     function updateClientViewOnly(userId) {
         const c = fullData.clients.find(item => item.name === userId);
         if (!c) { 
@@ -126,7 +128,6 @@
         document.getElementById('v-start').innerText = c.start;
         document.getElementById('v-end').innerText = c.expiry;
         
-        // تشغيل العداد فقط إذا لم يكن يعمل مسبقاً
         if (!window.timerInterval) {
             window.timerInterval = setInterval(() => { 
                 document.getElementById('timer').innerHTML = getTimeHTML(calculateTime(c.expiry)); 
@@ -207,10 +208,9 @@
     function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
     function copyTag(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); alert("تم النسخ!"); }
 
-    // تشغيل الكود لأول مرة
     loadData();
 
-    // --- تحديث البيانات تلقائياً كل 5 دقائق بدون تدخل العميل ---
+    // التحديث التلقائي الصامت كل 5 دقائق
     setInterval(loadData, 300000);
 
 </script>
