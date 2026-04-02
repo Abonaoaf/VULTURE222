@@ -3,143 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر تطبيقات فولتشر السحابي</title>
+    <title>لوحة تحكم فولتشر - إدارة المشتركين</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #4338ca; --secondary: #6366f1; --bg: #f8fafc; --white: #ffffff; --text: #1e293b; --success: #10b981; --danger: #ef4444; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); }
-        .header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 30px 20px; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .container { padding: 20px; max-width: 800px; margin: auto; }
-        #adminPanel { display: none; background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px; border: 2px solid var(--primary); }
-        .input-group { margin-bottom: 15px; text-align: right; }
-        .input-group label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; color: #475569; }
-        .input-group input, .input-group textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
-        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        .app-card { background: var(--white); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .app-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .app-img { width: 70px; height: 70px; border-radius: 15px; object-fit: cover; border: 1px solid #eee; }
-        .app-info h3 { margin: 0; color: var(--primary); font-size: 1.1rem; }
-        .app-code { background: #fff1f2; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; color: #e11d48; display: inline-block; margin-top: 5px; }
-        .app-desc { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; line-height: 1.6; }
-        .link-box { display: flex; align-items: center; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 8px; gap: 10px; }
-        .link-text { flex-grow: 1; font-size: 0.8rem; color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: ltr; }
-        .btn-copy { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
-        .loading { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; gap: 10px; }
+        :root { --primary: #1e293b; --accent: #3b82f6; --bg: #f1f5f9; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
+        .admin-card { background: var(--white); max-width: 900px; margin: auto; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 20px; }
+        #loginSection { display: none; }
+        .header-title { border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .client-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
+        .btn-add { grid-column: span 2; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .client-item { background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .loading { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
     </style>
 </head>
 <body>
 
 <div id="loading" class="loading">
-    <i class="fas fa-spinner fa-spin fa-3x" style="color:var(--primary)"></i>
-    <span style="font-weight:bold; color:var(--primary)">جاري المزامنة السحابية...</span>
+    <i class="fas fa-sync fa-spin fa-3x" style="color:var(--accent)"></i>
+    <p>جاري تأمين البيانات...</p>
 </div>
 
-<div class="header">
-    <h1><i class="fas fa-store"></i> متجر تطبيقات فولتشر</h1>
-    <p>الإدارة السحابية الموحدة (اختارها وبس)</p>
-</div>
-
-<div class="container">
-    <div id="adminPanel">
-        <div style="margin-bottom:15px; color:var(--primary); border-bottom:1px solid #eee; padding-bottom:10px;">
-            <b><i class="fas fa-plus-circle"></i> إضافة تطبيق جديد للمتجر</b>
-        </div>
-        <div class="input-group"><label>اسم التطبيق</label><input type="text" id="appName"></div>
-        <div class="input-group"><label>كود التطبيق (Downloader)</label><input type="text" id="appCode"></div>
-        <div class="input-group"><label>شرح التطبيق (اختياري)</label><textarea id="appDesc" rows="2"></textarea></div>
-        <div class="input-group"><label>رابط التحميل المباشر</label><input type="text" id="appLink"></div>
-        <div class="input-group"><label>صورة التطبيق (من الجهاز)</label><input type="file" id="appImg" accept="image/*" onchange="previewImage(this)"></div>
-        <center><img id="imagePreview" style="display:none; width:60px; height:60px; margin-bottom:15px; border-radius:12px;"></center>
-        <button class="btn-save" onclick="addApp()">حفظ ونشر التطبيق</button>
+<div class="admin-card">
+    <div class="header-title">
+        <h2><i class="fas fa-users-cog"></i> إدارة المشتركين (VULTURE222)</h2>
+        <button onclick="exportData()" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">تصدير JSON</button>
     </div>
-    <div id="appsGrid"></div>
+
+    <div id="loginSection">
+        <div class="client-form">
+            <input type="text" id="cName" placeholder="اسم المشترك">
+            <input type="text" id="cPhone" placeholder="رقم الهاتف">
+            <input type="text" id="cPass" placeholder="كلمة المرور">
+            <input type="date" id="cExpiry" placeholder="تاريخ الانتهاء">
+            <button class="btn-add" onclick="addClient()">إضافة مشترك جديد</button>
+        </div>
+        <div id="clientsList"></div>
+    </div>
 </div>
 
 <script>
-    // الجزء المشفر (Obfuscated) لإخفاء الرابط وكلمة السر
-    const _0x5a12=["\x68\x74\x74\x70\x73\x3a\x2f\x2f\x76\x75\x6c\x74\x75\x72\x65\x2d\x61\x70\x70\x2d\x31\x65\x66\x62\x61\x2d\x64\x65\x66\x61\x75\x6c\x74\x2d\x72\x74\x64\x62\x2e\x66\x69\x72\x65\x62\x61\x73\x65\x69\x6f\x2e\x63\x6f\x6d\x2f\x2e\x6a\x73\x6f\x6e","\x41\x62\x6f\x4e\x61\x77\x61\x66\x5f\x53\x61\x66\x65\x5f\x53\x74\x6f\x72\x65\x5f\x32\x30\x32\x36"];
-    const DB_URL=_0x5a12[0]; 
-    const ADMIN_KEY=_0x5a12[1];
+    // تشفير الروابط وكلمة السر لحماية الـ 60 مشتركاً
+    const _0x4f22=["\x68\x74\x74\x70\x73\x3a\x2f\x2f\x76\x75\x6c\x74\x75\x72\x65\x2d\x61\x70\x70\x2d\x31\x65\x66\x62\x61\x2d\x64\x65\x66\x61\x75\x6c\x74\x2d\x72\x74\x64\x62\x2e\x66\x69\x72\x65\x62\x61\x73\x65\x69\x6f\x2e\x63\x6f\x6d\x2f\x2e\x6a\x73\x6f\x6e","\x41\x62\x6f\x4e\x61\x77\x61\x66\x5f\x50\x6c\x61\x74\x66\x6f\x72\x6d\x5f\x32\x30\x32\x36"];
+    const DB_URL = _0x4f22[0];
+    const ADMIN_KEY = _0x4f22[1];
 
-    let fullData = { clients: [], apps: [] };
-    let selectedImageBase64 = "";
+    let globalData = { clients: [], apps: [] };
 
     async function init() {
-        showLoading(true);
-        try {
-            const res = await fetch(DB_URL);
-            const data = await res.json();
-            if (data) {
-                fullData.clients = data.clients || []; // ضمان عدم مسح المشتركين
-                fullData.apps = data.apps || [];
-            }
-            if (new URLSearchParams(window.location.search).get('\x61\x64\x6d\x69\x6e') === ADMIN_KEY) {
-                document.getElementById('adminPanel').style.display = 'block';
-            }
-            renderApps();
-        } catch (e) { console.error("Error"); }
-        showLoading(false);
+        toggleLoading(true);
+        const res = await fetch(DB_URL);
+        const data = await res.json();
+        if(data) {
+            globalData.clients = data.clients || [];
+            globalData.apps = data.apps || []; [span_2](start_span)// الحفاظ على بيانات المتجر[span_2](end_span)
+        }
+        
+        if(new URLSearchParams(window.location.search).get('admin') === ADMIN_KEY) {
+            document.getElementById('loginSection').style.display = 'block';
+            renderClients();
+        } else {
+            alert("غير مصرح بالدخول");
+        }
+        toggleLoading(false);
     }
 
-    function renderApps() {
-        const isAdmin = new URLSearchParams(window.location.search).get('\x61\x64\x6d\x69\x6e') === ADMIN_KEY;
-        const grid = document.getElementById('appsGrid');
-        grid.innerHTML = fullData.apps.map((app, i) => `
-            <div class="app-card">
-                <div class="app-header"><img src="${app.img}" class="app-img"><div class="app-info"><h3>${app.name}</h3><span class="app-code">كود: ${app.code}</span></div></div>
-                ${app.desc ? `<div class="app-desc">${app.desc}</div>` : ''}
-                <div class="link-box"><span class="link-text" id="url-${i}">${app.link}</span><button class="btn-copy" onclick="copyText('url-${i}')">نسخ</button></div>
-                ${isAdmin ? `<button onclick="deleteApp(${i})" style="margin-top:15px; background:none; border:none; color:var(--danger); cursor:pointer;">حذف</button>` : ''}
+    function renderClients() {
+        const list = document.getElementById('clientsList');
+        list.innerHTML = globalData.clients.map((c, i) => `
+            <div class="client-item">
+                <div>
+                    <strong>${c.name}</strong><br>
+                    <small>ينتهي في: ${c.expiry} | كلمة السر: ${c.pass}</small>
+                </div>
+                <button onclick="deleteClient(${i})" style="color:red; border:none; background:none; cursor:pointer;"><i class="fas fa-trash"></i></button>
             </div>
         `).join('');
     }
 
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => { 
-                selectedImageBase64 = e.target.result;
-                document.getElementById('imagePreview').src = selectedImageBase64;
-                document.getElementById('imagePreview').style.display = 'block';
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    async function addApp() {
-        showLoading(true);
-        const res = await fetch(DB_URL);
-        const latestData = await res.json();
-        if (latestData) {
-            fullData.clients = latestData.clients || [];
-            fullData.apps = latestData.apps || [];
-        }
-        fullData.apps.push({
-            name: document.getElementById('appName').value,
-            code: document.getElementById('appCode').value,
-            link: document.getElementById('appLink').value,
-            desc: document.getElementById('appDesc').value,
-            img: selectedImageBase64
+    async function addClient() {
+        toggleLoading(true);
+        globalData.clients.push({
+            name: document.getElementById('cName').value,
+            phone: document.getElementById('cPhone').value,
+            pass: document.getElementById('cPass').value,
+            expiry: document.getElementById('cExpiry').value,
+            start: new Date().toISOString().split('T')[0]
         });
-        await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(fullData) });
+        await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(globalData) });
         location.reload();
     }
 
-    async function deleteApp(i) {
-        if(confirm("حذف التطبيق؟")) {
-            showLoading(true);
-            fullData.apps.splice(i, 1);
-            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(fullData) });
+    async function deleteClient(i) {
+        if(confirm("حذف المشترك؟")) {
+            toggleLoading(true);
+            globalData.clients.splice(i, 1);
+            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(globalData) });
             location.reload();
         }
     }
 
-    function copyText(id) {
-        const text = document.getElementById(id).innerText;
-        navigator.clipboard.writeText(text).then(() => alert("تم النسخ!"));
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(globalData));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "vulture_backup.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
     }
 
-    function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
+    function toggleLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
     init();
 </script>
 </body>
