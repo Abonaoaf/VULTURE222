@@ -83,20 +83,21 @@
 </div>
 
 <script>
-    // --- التعديل الجديد حسب الصور ---
-    const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.io/.json";
+    // --- إعدادات الرابط الجديد ---
+    const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseioio.com/.json";
     let fullData = { clients: [] };
     const params = new URLSearchParams(window.location.search);
 
-    // دالة جلب البيانات المحدثة
+    // دالة جلب البيانات (Load)
     async function loadData() {
         showLoading(true);
         try {
             const response = await fetch(DB_URL);
             const data = await response.json();
-            // نتحقق أن البيانات موجودة أو نضع مصفوفة فارغة
+            // نضع البيانات في المصفوفة أو ننشئ مصفوفة فارغة إذا كانت القاعدة جديدة
             fullData = data || { clients: [] };
-            
+            if (!fullData.clients) fullData.clients = [];
+
             const user = params.get('user');
             if (user) { 
                 loadClientView(decodeURIComponent(user)); 
@@ -104,26 +105,25 @@
                 showAdminPanel(); 
             }
         } catch (error) { 
-            console.error("خطأ في جلب البيانات من السحابة"); 
+            console.error("خطأ في جلب البيانات:", error); 
         }
         showLoading(false);
     }
 
-    // دالة المزامنة والحفظ المحدثة
+    // دالة المزامنة والحفظ (Sync)
     async function syncToCloud() {
         showLoading(true);
         try {
             await fetch(DB_URL, {
-                method: 'PUT', // الكلمة هي سر الحفظ السحابي
+                method: 'PUT',
                 body: JSON.stringify(fullData)
             });
-            console.log("تم الحفظ بنجاح في سحابة جوجل");
+            console.log("تم الحفظ بنجاح");
         } catch (error) { 
-            alert("فشلت المزامنة، تأكد من الاتصال"); 
+            alert("فشلت المزامنة!"); 
         }
         showLoading(false);
     }
-    // ----------------------------
 
     function loadClientView(userId) {
         const c = fullData.clients.find(item => item.name === userId);
@@ -136,8 +136,7 @@
         document.getElementById('v-start').innerText = c.start;
         document.getElementById('v-end').innerText = c.expiry;
         setInterval(() => { 
-            const time = calculateTime(c.expiry);
-            document.getElementById('timer').innerHTML = getTimeHTML(time); 
+            document.getElementById('timer').innerHTML = getTimeHTML(calculateTime(c.expiry)); 
         }, 1000);
     }
 
@@ -160,7 +159,6 @@
 
     function renderClients() {
         const list = document.getElementById('clientsList');
-        if(!fullData.clients) fullData.clients = [];
         list.innerHTML = fullData.clients.map((c, i) => `
             <div class="client-item">
                 <h3 style="color:var(--primary); margin:0;">${c.name}</h3>
@@ -190,14 +188,12 @@
         if(!data.name || !data.expiry) return alert("أكمل البيانات!");
         if (idx === -1) fullData.clients.push(data); else fullData.clients[idx] = data;
         await syncToCloud();
-        renderClients(); 
-        closeModal();
+        renderClients(); closeModal();
     }
 
     function copyClientUrl(userName) {
         const url = `${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(userName)}`;
-        navigator.clipboard.writeText(url); 
-        alert("تم نسخ الرابط");
+        navigator.clipboard.writeText(url); alert("تم نسخ الرابط");
     }
 
     function editClient(i) {
@@ -206,20 +202,13 @@
         ['name','phone','plan','pass','link','start','expiry'].forEach(id => document.getElementById('in-'+id).value = fullData.clients[i][id] || '');
     }
 
-    async function deleteClient(i) { 
-        if(confirm("هل أنت متأكد من الحذف؟")) { 
-            fullData.clients.splice(i,1); 
-            await syncToCloud(); 
-            renderClients();
-        } 
-    }
-
+    async function deleteClient(i) { if(confirm("حذف؟")) { fullData.clients.splice(i,1); await syncToCloud(); renderClients(); } }
     function openModal() { document.getElementById('editIndex').value = "-1"; document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
     function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
     function copyTag(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); alert("تم النسخ!"); }
 
-    // تشغيل الدالة الأساسية عند التحميل
+    // تشغيل الكود الرئيسي
     loadData();
 </script>
 </body>
