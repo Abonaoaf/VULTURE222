@@ -83,49 +83,39 @@
 </div>
 
 <script>
-    // --- الرابط الصحيح (تم تصحيح firebaseio) ---
     const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.com/.json";
     let fullData = { clients: [] };
     const params = new URLSearchParams(window.location.search);
 
     async function loadData() {
-        showLoading(true);
+        // نظهر مؤشر التحميل فقط عند أول تشغيل، وفي التحديث التلقائي نجعله "صامتاً"
+        const isInitialLoad = !document.getElementById('clientView').style.display && !document.getElementById('adminPanel').style.display;
+        if (isInitialLoad) showLoading(true);
+
         try {
             const response = await fetch(DB_URL);
             const data = await response.json();
-            // التأكد من تهيئة المصفوفة حتى لو كانت القاعدة فارغة
             fullData = data || { clients: [] };
             if (!fullData.clients) fullData.clients = [];
 
             const user = params.get('user');
             if (user) { 
-                loadClientView(decodeURIComponent(user)); 
+                updateClientViewOnly(decodeURIComponent(user)); 
             } else { 
-                showAdminPanel(); 
+                renderClients();
+                document.getElementById('adminPanel').style.display = 'block';
             }
-        } catch (error) { 
-            console.error("Error:", error); 
-        }
-        showLoading(false);
+        } catch (error) { console.error("Error loading data"); }
+        if (isInitialLoad) showLoading(false);
     }
 
-    async function syncToCloud() {
-        showLoading(true);
-        try {
-            await fetch(DB_URL, {
-                method: 'PUT',
-                body: JSON.stringify(fullData)
-            });
-        } catch (error) { 
-            alert("فشلت المزامنة!"); 
-        }
-        showLoading(false);
-    }
-
-    function loadClientView(userId) {
+    // دالة لتحديث البيانات على الشاشة دون تكرار الـ Interval الخاص بالعداد
+    function updateClientViewOnly(userId) {
         const c = fullData.clients.find(item => item.name === userId);
         if (!c) { 
-            document.body.innerHTML = "<div style='text-align:center; padding:50px;'><h1>المشترك غير موجود</h1></div>"; 
+            if (!document.getElementById('clientView').style.display) {
+                document.body.innerHTML = "<div style='text-align:center; padding:50px;'><h1>المشترك غير موجود</h1></div>"; 
+            }
             return; 
         }
         document.getElementById('clientView').style.display = 'block';
@@ -135,9 +125,21 @@
         document.getElementById('v-pass').innerText = c.pass;
         document.getElementById('v-start').innerText = c.start;
         document.getElementById('v-end').innerText = c.expiry;
-        setInterval(() => { 
-            document.getElementById('timer').innerHTML = getTimeHTML(calculateTime(c.expiry)); 
-        }, 1000);
+        
+        // تشغيل العداد فقط إذا لم يكن يعمل مسبقاً
+        if (!window.timerInterval) {
+            window.timerInterval = setInterval(() => { 
+                document.getElementById('timer').innerHTML = getTimeHTML(calculateTime(c.expiry)); 
+            }, 1000);
+        }
+    }
+
+    async function syncToCloud() {
+        showLoading(true);
+        try {
+            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(fullData) });
+        } catch (error) { alert("فشلت المزامنة!"); }
+        showLoading(false);
     }
 
     function calculateTime(expiry) {
@@ -152,14 +154,9 @@
         return ['سنة','شهر','يوم','ساعة','دقيقة','ثانية'].map(l => `<div class="time-unit"><span class="time-num">${t[l]}</span><span class="time-lab">${l}</span></div>`).join('');
     }
 
-    function showAdminPanel() {
-        document.getElementById('adminPanel').style.display = 'block';
-        renderClients();
-    }
-
     function renderClients() {
         const list = document.getElementById('clientsList');
-        list.innerHTML = fullData.clients.map((c, i) => `
+        list.innerHTML = (fullData.clients || []).map((c, i) => `
             <div class="client-item">
                 <h3 style="color:var(--primary); margin:0;">${c.name}</h3>
                 <div style="background:#f8fafc; padding:10px; border-radius:10px; font-size:0.8rem; margin:10px 0;">
@@ -188,14 +185,12 @@
         if(!data.name || !data.expiry) return alert("أكمل البيانات!");
         if (idx === -1) fullData.clients.push(data); else fullData.clients[idx] = data;
         await syncToCloud();
-        renderClients(); 
-        closeModal();
+        renderClients(); closeModal();
     }
 
     function copyClientUrl(userName) {
         const url = `${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(userName)}`;
-        navigator.clipboard.writeText(url); 
-        alert("تم نسخ الرابط");
+        navigator.clipboard.writeText(url); alert("تم نسخ الرابط");
     }
 
     function editClient(i) {
@@ -206,21 +201,18 @@
         });
     }
 
-    async function deleteClient(i) { 
-        if(confirm("حذف؟")) { 
-            fullData.clients.splice(i,1); 
-            await syncToCloud(); 
-            renderClients(); 
-        } 
-    }
-
+    async function deleteClient(i) { if(confirm("حذف؟")) { fullData.clients.splice(i,1); await syncToCloud(); renderClients(); } }
     function openModal() { document.getElementById('editIndex').value = "-1"; document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
     function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
     function copyTag(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); alert("تم النسخ!"); }
 
-    // تشغيل الكود
+    // تشغيل الكود لأول مرة
     loadData();
+
+    // --- تحديث البيانات تلقائياً كل 5 دقائق بدون تدخل العميل ---
+    setInterval(loadData, 300000);
+
 </script>
 </body>
 </html>
