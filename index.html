@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>منصة فولتشر الاحترافية</title>
+    <title>منصة فولتشر | VULTURE222</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #1e293b; --accent: #3b82f6; --bg: #f1f5f9; --white: #ffffff; --danger: #ef4444; --success: #10b981; }
@@ -16,7 +16,6 @@
         
         #loginSection { display: none; }
         
-        /* تصميم الحقول السبعة */
         .client-form { display: grid; grid-template-columns: 1fr; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
         @media (min-width: 600px) { .client-form { grid-template-columns: 1fr 1fr; } }
         
@@ -24,16 +23,20 @@
         .full-width { grid-column: 1 / -1; }
         .btn-add { grid-column: 1 / -1; background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; }
 
-        /* بطاقة المشترك والعد التنازلي */
-        .client-item { background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px; margin-bottom: 15px; position: relative; }
-        .client-info strong { color: var(--accent); font-size: 1.2rem; display: block; margin-bottom: 5px; }
-        .client-details { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.85rem; color: #64748b; margin-bottom: 10px; }
+        .client-item { background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px; margin-bottom: 15px; position: relative; border-right: 5px solid var(--accent); }
+        .client-info strong { color: var(--primary); font-size: 1.2rem; display: block; margin-bottom: 8px; }
+        .client-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem; color: #475569; margin-bottom: 10px; }
         
-        .countdown-box { background: #fff1f2; color: #e11d48; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 0.85rem; border: 1px solid #fecdd3; }
-        .countdown-grid { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
-        .unit { background: #e11d48; color: white; padding: 2px 5px; border-radius: 4px; font-size: 0.75rem; }
+        /* تصميم العداد */
+        .countdown-box { background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 12px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.9rem; margin-top: 10px; border: 1px solid #1e293b; }
+        .timer-grid { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+        .timer-unit { background: #38bdf8; color: #0f172a; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; }
 
-        .btn-delete { position: absolute; left: 15px; top: 15px; color: var(--danger); background: #fee2e2; border: none; width: 35px; height: 35px; border-radius: 8px; cursor: pointer; }
+        .action-btns { display: flex; gap: 8px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        .btn { border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; }
+        .btn-copy { background: #e0f2fe; color: #0369a1; flex: 1; }
+        .btn-edit { background: #fef3c7; color: #92400e; }
+        .btn-del { background: #fee2e2; color: #b91c1c; }
         
         .loading-overlay { position: fixed; inset: 0; background: white; display: flex; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; }
     </style>
@@ -41,14 +44,14 @@
 <body>
 
 <div id="loadingOverlay" class="loading-overlay">
-    <i class="fas fa-spinner fa-spin fa-3x" style="color:var(--accent)"></i>
-    <p id="loadStatus">جاري الاتصال بالسحابة...</p>
+    <i class="fas fa-circle-notch fa-spin fa-3x" style="color:var(--accent)"></i>
+    <p id="loadStatus">جاري المزامنة مع السحابة...</p>
 </div>
 
 <div class="admin-card">
     <div class="header-title">
-        <h2><i class="fas fa-user-shield"></i> منصة فولتشر المتكاملة</h2>
-        <button onclick="exportData()" style="background:var(--success); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">نسخة احتياطية</button>
+        <h2><i class="fas fa-user-lock"></i> لوحة إدارة فولتشر</h2>
+        <button onclick="exportData()" style="background:var(--success); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;"><i class="fas fa-download"></i> نسخة JSON</button>
     </div>
 
     <div id="loginSection">
@@ -57,12 +60,10 @@
             <input type="text" id="cPhone" placeholder="رقم الجوال">
             <input type="text" id="cUser" placeholder="اسم المستخدم">
             <input type="text" id="cPass" placeholder="الرقم السري">
-            <input type="text" id="cLink" class="full-width" placeholder="الرابط">
-            <label style="font-size: 0.8rem;">تاريخ البداية:</label>
-            <input type="date" id="cStart">
-            <label style="font-size: 0.8rem;">تاريخ النهاية:</label>
-            <input type="date" id="cEnd">
-            <button class="btn-add" onclick="addClient()">إضافة المشترك وتفعيل العد التنازلي</button>
+            <input type="text" id="cLink" class="full-width" placeholder="الرابط (https://...)">
+            <div style="font-size:0.8rem">تاريخ البداية: <input type="date" id="cStart"></div>
+            <div style="font-size:0.8rem">تاريخ النهاية: <input type="date" id="cEnd"></div>
+            <button class="btn-add" id="mainBtn" onclick="addClient()">إضافة العميل وتفعيل الاشتراك</button>
         </div>
         <div id="clientsList"></div>
     </div>
@@ -74,11 +75,12 @@
     const ADMIN_KEY = _0x12a[1];
 
     let globalData = { clients: [], apps: [] };
+    let editIndex = -1;
 
     async function init() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('admin') !== ADMIN_KEY) {
-            document.getElementById('loadStatus').innerHTML = "⚠️ الدخول عبر الرابط السري فقط";
+            document.getElementById('loadStatus').innerHTML = "⚠️ غير مصرح بالدخول";
             return;
         }
         try {
@@ -93,73 +95,90 @@
             renderClients();
             setInterval(updateCountdowns, 1000);
         } catch (e) {
-            document.getElementById('loadStatus').innerHTML = "خطأ في الاتصال بقاعدة البيانات";
+            document.getElementById('loadStatus').innerHTML = "خطأ في الاتصال بالسحابة";
         }
     }
 
     function renderClients() {
         const list = document.getElementById('clientsList');
         list.innerHTML = globalData.clients.slice().reverse().map((c, i) => {
-            const originalIndex = globalData.clients.length - 1 - i;
+            const idx = globalData.clients.length - 1 - i;
             return `
             <div class="client-item">
-                <button class="btn-delete" onclick="deleteClient(${originalIndex})"><i class="fas fa-trash"></i></button>
                 <div class="client-info">
                     <strong>${c.name}</strong>
                     <div class="client-details">
-                        <span><i class="fas fa-user"></i> ${c.user}</span>
+                        <span><i class="fas fa-user-circle"></i> ${c.user}</span>
                         <span><i class="fas fa-phone"></i> ${c.phone}</span>
                         <span><i class="fas fa-key"></i> ${c.pass}</span>
-                        <span><i class="fas fa-calendar-alt"></i> ${c.start}</span>
+                        <span><i class="fas fa-calendar-check"></i> يبدأ: ${c.start}</span>
                     </div>
-                    <div style="font-size:0.75rem; word-break:break-all; color:var(--accent); margin-bottom:10px;">${c.link}</div>
-                    <div class="countdown-box" id="timer-${originalIndex}">جاري الحساب...</div>
+                    <div class="countdown-box" id="timer-${idx}">جاري حساب المتبقي...</div>
+                    <div class="action-btns">
+                        <button class="btn btn-copy" onclick="copyLink('${c.link}')"><i class="fas fa-copy"></i> نسخ الرابط</button>
+                        <button class="btn btn-edit" onclick="editClient(${idx})"><i class="fas fa-edit"></i> تعديل</button>
+                        <button class="btn btn-del" onclick="deleteClient(${idx})"><i class="fas fa-trash"></i></button>
+                    </div>
                 </div>
             </div>
         `}).join('');
     }
 
     function updateCountdowns() {
-        globalData.clients.forEach((c, index) => {
-            const timerDiv = document.getElementById(`timer-${index}`);
-            if (!timerDiv || !c.end) return;
+        globalData.clients.forEach((c, i) => {
+            const box = document.getElementById(`timer-${i}`);
+            if (!box || !c.end) return;
 
-            const now = new Date().getTime();
-            const end = new Date(c.end).getTime();
-            const diff = end - now;
+            const diff = new Date(c.end).getTime() - new Date().getTime();
+            if (diff <= 0) { box.innerHTML = "🔴 اشتراك منتهي"; return; }
 
-            if (diff <= 0) {
-                timerDiv.innerHTML = "❌ الاشتراك منتهي";
-                return;
-            }
+            const s = Math.floor(diff / 1000);
+            const m = Math.floor(s / 60);
+            const h = Math.floor(m / 60);
+            const d = Math.floor(h / 24);
+            const mo = Math.floor(d / 30.44);
+            const y = Math.floor(mo / 12);
 
-            const secs = Math.floor(diff / 1000);
-            const mins = Math.floor(secs / 60);
-            const hours = Math.floor(mins / 60);
-            const days = Math.floor(hours / 24);
-            const months = Math.floor(days / 30.44);
-            const years = Math.floor(months / 12);
-
-            timerDiv.innerHTML = `
+            box.innerHTML = `
                 المتبقي:
-                <div class="countdown-grid">
-                    <span class="unit">${years} سنة</span>
-                    <span class="unit">${months % 12} شهر</span>
-                    <span class="unit">${days % 30} يوم</span>
-                    <span class="unit">${hours % 24} س</span>
-                    <span class="unit">${mins % 60} د</span>
-                    <span class="unit">${secs % 60} ث</span>
+                <div class="timer-grid">
+                    <span class="timer-unit">${y}Y</span>
+                    <span class="timer-unit">${mo%12}M</span>
+                    <span class="timer-unit">${d%30}D</span>
+                    <span class="timer-unit">${h%24}H</span>
+                    <span class="timer-unit">${m%60}M</span>
+                    <span class="timer-unit">${s%60}S</span>
                 </div>
             `;
         });
     }
 
+    function copyLink(link) {
+        navigator.clipboard.writeText(link).then(() => alert("تم نسخ رابط العميل بنجاح!"));
+    }
+
+    function editClient(i) {
+        const c = globalData.clients[i];
+        document.getElementById('cName').value = c.name;
+        document.getElementById('cPhone').value = c.phone;
+        document.getElementById('cUser').value = c.user;
+        document.getElementById('cPass').value = c.pass;
+        document.getElementById('cLink').value = c.link;
+        document.getElementById('cStart').value = c.start;
+        document.getElementById('cEnd').value = c.end;
+        editIndex = i;
+        document.getElementById('mainBtn').innerHTML = "حفظ التعديلات الآن";
+        document.getElementById('mainBtn').style.background = "#92400e";
+        window.scrollTo(0,0);
+    }
+
     async function addClient() {
         const name = document.getElementById('cName').value;
-        if (!name) return alert("يرجى تعبئة الحقول");
+        if (!name) return alert("يرجى إدخال اسم العميل");
 
         document.getElementById('loadingOverlay').style.display = 'flex';
-        globalData.clients.push({
+        
+        const newClient = {
             name: name,
             phone: document.getElementById('cPhone').value,
             user: document.getElementById('cUser').value,
@@ -167,16 +186,23 @@
             link: document.getElementById('cLink').value,
             start: document.getElementById('cStart').value,
             end: document.getElementById('cEnd').value
-        });
+        };
+
+        if (editIndex > -1) {
+            globalData.clients[editIndex] = newClient;
+            editIndex = -1;
+        } else {
+            globalData.clients.push(newClient);
+        }
 
         await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(globalData) });
         location.reload();
     }
 
-    async function deleteClient(index) {
-        if (confirm("حذف؟")) {
+    async function deleteClient(i) {
+        if (confirm("هل أنت متأكد من حذف هذا المشترك؟")) {
             document.getElementById('loadingOverlay').style.display = 'flex';
-            globalData.clients.splice(index, 1);
+            globalData.clients.splice(i, 1);
             await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(globalData) });
             location.reload();
         }
@@ -184,10 +210,10 @@
 
     function exportData() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(globalData));
-        const dlAnchor = document.createElement('a');
-        dlAnchor.setAttribute("href", dataStr);
-        dlAnchor.setAttribute("download", "backup.json");
-        dlAnchor.click();
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", "backup.json");
+        dl.click();
     }
 
     init();
