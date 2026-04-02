@@ -3,92 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة إدارة Vulture-App</title>
+    <title>منصة المشتركين | فولتشر</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* التنسيق الذي تفضله: أزرق متدرج وحركات نبض */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; outline: none; }
-        button { background: #ef4444; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #dc2626; transform: scale(1.02); }
-        .pulse { animation: pulse-animation 2s infinite; }
-        @keyframes pulse-animation { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        #loading { display: none; color: #fbbf24; font-weight: bold; margin-bottom: 10px; }
+        :root { --primary: #007bff; --success: #28a745; --bg: #f4f7f6; --whatsapp: #25d366; --channel: #008069; --danger: #dc3545; --text: #2d3748; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; color: var(--text); }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .container { width: 100%; max-width: 900px; }
+        .header { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; text-align: center; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .stat-card { background: var(--bg); padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .search-box { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; margin: 20px 0; font-size: 16px; transition: border-color 0.3s; }
+        .search-box:focus { border-color: var(--primary); outline: none; }
+        .client-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); border-right: 5px solid var(--primary); transition: transform 0.2s; position: relative; }
+        .client-card:hover { transform: translateX(-5px); }
+        .client-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .badge-admin { background: #fee2e2; color: #991b1b; }
+        .badge-premium { background: #dcfce7; color: #166534; }
+        .grid-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 14px; }
+        .info-item { display: flex; align-items: center; gap: 8px; color: #64748b; }
+        .actions { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
+        .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: 0.2s; color: white; }
+        .btn-edit { background: var(--primary); }
+        .btn-del { background: var(--danger); }
+        .btn-copy { background: #64748b; }
+        .btn-whatsapp { background: var(--whatsapp); }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1001; padding: 20px; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
+        .timer { font-weight: bold; color: var(--danger); background: #fff5f5; padding: 2px 8px; border-radius: 5px; }
     </style>
 </head>
-<body oncontextmenu="return false;"> <h2>لوحة إدارة المشتركين</h2>
-    <div id="loading">جاري المزامنة مع سحابة جوجل...</div>
+<body oncontextmenu="return false;">
 
-    <div class="container">
-        <input type="text" id="in-name" placeholder="اسم المشترك">
-        <select id="in-plan">
-            <option value="admin">Admin (الإدارة)</option>
-            <option value="premium">Premium (مميز)</option>
-        </select>
-        <input type="password" id="in-pass" placeholder="كلمة المرور">
-        <input type="date" id="in-expiry">
-        <button class="pulse" onclick="addNewClient()">حفظ ومزامنة فورية ✅</button>
+<div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p style="margin-top:15px; font-weight:bold;">جاري المزامنة مع سحابة جوجل...</p>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-users-cog"></i> منصة إدارة المشتركين</h1>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div style="font-size: 0.8em; color: #64748b;">إجمالي المشتركين</div>
+                <div id="stat-total" style="font-size: 1.5em; font-weight: bold;">0</div>
+            </div>
+            <div class="stat-card">
+                <div style="font-size: 0.8em; color: #64748b;">نشط حالياً</div>
+                <div id="stat-active" style="font-size: 1.5em; font-weight: bold; color: var(--success);">0</div>
+            </div>
+        </div>
+        <button class="btn btn-edit" style="margin-top:20px; width:100%; justify-content:center; padding:12px;" onclick="openModal()">
+            <i class="fas fa-plus"></i> إضافة مشترك جديد
+        </button>
     </div>
 
-    <div id="client-list" style="margin-top: 20px; width: 90%; max-width: 500px;"></div>
+    <input type="text" class="search-box" id="search" placeholder="ابحث باسم المشترك أو رقم الجوال..." oninput="renderClients()">
 
-    <script>
-        // الرابط الخاص بقاعدة بياناتك التي أنشأتها
-        const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.com/.json";
-        let fullData = { clients: [] };
+    <div id="clientsList"></div>
+</div>
 
-        // جلب البيانات فور فتح الصفحة
-        async function loadData() {
-            showLoading(true);
-            try {
-                const response = await fetch(DB_URL);
-                const data = await response.json();
-                if (data && data.clients) {
-                    fullData = data;
-                    renderClients();
-                }
-            } catch (e) { console.error("خطأ في الاتصال"); }
-            showLoading(false);
-        }
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle">إضافة مشترك جديد</h3>
+        <input type="hidden" id="editIndex" value="-1">
+        
+        <div class="form-group">
+            <label>اسم المشترك</label>
+            <input type="text" id="in-name" placeholder="الاسم الثلاثي">
+        </div>
+        <div class="form-group">
+            <label>رقم الجوال</label>
+            <input type="text" id="in-phone" placeholder="9665xxxxxxxx">
+        </div>
+        <div class="form-group">
+            <label>الباقة</label>
+            <select id="in-plan">
+                <option value="premium">Premium (مميز)</option>
+                <option value="admin">Admin (إدارة)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="text" id="in-pass">
+        </div>
+        <div class="form-group">
+            <label>رابط النموذج</label>
+            <input type="text" id="in-link" placeholder="https://...">
+        </div>
+        <div class="form-group">
+            <label>تاريخ البدء</label>
+            <input type="date" id="in-start">
+        </div>
+        <div class="form-group">
+            <label>تاريخ الانتهاء</label>
+            <input type="date" id="in-expiry">
+        </div>
 
-        async function addNewClient() {
-            const name = document.getElementById('in-name').value;
-            const plan = document.getElementById('in-plan').value;
-            const pass = document.getElementById('in-pass').value;
-            const expiry = document.getElementById('in-expiry').value;
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="btn btn-edit" style="flex:2" onclick="saveClient()">حفظ ومزامنة</button>
+            <button class="btn btn-copy" style="flex:1" onclick="closeModal()">إلغاء</button>
+        </div>
+    </div>
+</div>
 
-            if(!name || !pass || !expiry) return alert("يرجى إكمال البيانات");
+<script>
+    // الرابط السحابي الجديد الخاص بك
+    const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.com/.json";
+    let fullData = { clients: [] };
 
-            const newClient = { name, plan, pass, expiry };
-            fullData.clients.push(newClient);
+    async function loadData() {
+        showLoading(true);
+        try {
+            const r = await fetch(DB_URL);
+            const d = await r.json();
+            fullData = d || { clients: [] };
+            renderClients();
+        } catch(e) { console.error("Error loading data"); }
+        showLoading(false);
+    }
 
-            showLoading(true);
-            try {
-                await fetch(DB_URL, {
-                    method: 'PUT',
-                    body: JSON.stringify(fullData)
-                });
-                alert("تمت الإضافة والمزامنة بنجاح!");
-                renderClients();
-            } catch (e) { alert("فشل الحفظ"); }
-            showLoading(false);
-        }
-
-        function renderClients() {
-            const list = document.getElementById('client-list');
-            list.innerHTML = "";
-            fullData.clients.forEach((c, index) => {
-                list.innerHTML += `<div style="background:white; color:black; padding:10px; margin:5px; border-radius:5px;">
-                    <b>${c.name}</b> - ${c.expiry}
-                </div>`;
+    async function syncToCloud() {
+        showLoading(true);
+        try {
+            await fetch(DB_URL, {
+                method: 'PUT',
+                body: JSON.stringify(fullData)
             });
+        } catch(e) { alert("خطأ في المزامنة!"); }
+        showLoading(false);
+    }
+
+    function renderClients() {
+        const list = document.getElementById('clientsList');
+        const searchTerm = document.getElementById('search').value.toLowerCase();
+        list.innerHTML = '';
+        
+        let activeCount = 0;
+        const filtered = fullData.clients.filter(c => 
+            c.name.toLowerCase().includes(searchTerm) || c.phone.includes(searchTerm)
+        );
+
+        filtered.forEach((c, i) => {
+            const isExpired = new Date(c.expiry) < new Date();
+            if(!isExpired) activeCount++;
+
+            const card = document.createElement('div');
+            card.className = 'client-card';
+            card.innerHTML = `
+                <div class="client-header">
+                    <div>
+                        <strong style="font-size:1.1em">${c.name}</strong>
+                        <span class="badge badge-${c.plan}">${c.plan.toUpperCase()}</span>
+                    </div>
+                    <div class="timer" id="timer-${i}">${calculateTimeLeft(c.expiry)}</div>
+                </div>
+                <div class="grid-info">
+                    <div class="info-item"><i class="fas fa-phone"></i> ${c.phone}</div>
+                    <div class="info-item"><i class="fas fa-key"></i> ${c.pass}</div>
+                    <div class="info-item"><i class="fas fa-calendar-alt"></i> ينتهي: ${c.expiry}</div>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-edit" onclick="editClient(${i})"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-copy" onclick="copyClientUrl('${c.name}')"><i class="fas fa-link"></i> نسخ الرابط</button>
+                    <button class="btn btn-whatsapp" onclick="sendWhatsApp('${c.phone}', '${c.name}', '${c.pass}', '${c.expiry}')">
+                        <i class="fab fa-whatsapp"></i> واتساب
+                    </button>
+                    <button class="btn btn-del" onclick="deleteClient(${i})"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+
+        document.getElementById('stat-total').innerText = fullData.clients.length;
+        document.getElementById('stat-active').innerText = activeCount;
+    }
+
+    async function saveClient() {
+        const idx = parseInt(document.getElementById('editIndex').value);
+        const data = {
+            name: document.getElementById('in-name').value,
+            phone: document.getElementById('in-phone').value,
+            plan: document.getElementById('in-plan').value,
+            pass: document.getElementById('in-pass').value,
+            link: document.getElementById('in-link').value,
+            start: document.getElementById('in-start').value,
+            expiry: document.getElementById('in-expiry').value
+        };
+
+        if(!data.name || !data.expiry) return alert("أكمل البيانات!");
+
+        if (idx === -1) {
+            fullData.clients.push(data);
+        } else {
+            fullData.clients[idx] = data;
         }
 
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? "block" : "none";
-        }
+        await syncToCloud();
+        renderClients();
+        closeModal();
+    }
 
-        window.onload = loadData;
-    </script>
+    function calculateTimeLeft(expiry) {
+        const diff = new Date(expiry) - new Date();
+        if(diff <= 0) return "منتهي";
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        return `متبقي ${days} يوم`;
+    }
+
+    function sendWhatsApp(phone, name, pass, expiry) {
+        const msg = encodeURIComponent(`أهلاً بك يا ${name}\nتم تفعيل اشتراكك بنجاح ✅\nكلمة المرور: ${pass}\nتاريخ الانتهاء: ${expiry}\nرابط المنصة: ${window.location.origin}`);
+        window.open(`https://wa.me/${phone}?text=${msg}`);
+    }
+
+    function copyClientUrl(userName) {
+        const url = `${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(userName)}`;
+        navigator.clipboard.writeText(url); 
+        alert("تم نسخ الرابط الفريد للمشترك بنجاح ✅");
+    }
+
+    function editClient(i) {
+        openModal();
+        document.getElementById('modalTitle').innerText = "تعديل بيانات المشترك";
+        document.getElementById('editIndex').value = i;
+        const c = fullData.clients[i];
+        ['name','phone','plan','pass','link','start','expiry'].forEach(id => {
+            document.getElementById('in-'+id).value = c[id] || '';
+        });
+    }
+
+    async function deleteClient(i) {
+        if(confirm("هل أنت متأكد من حذف هذا المشترك؟")) {
+            fullData.clients.splice(i, 1);
+            await syncToCloud();
+            renderClients();
+        }
+    }
+
+    function openModal() {
+        document.getElementById('editIndex').value = "-1";
+        document.getElementById('modalTitle').innerText = "إضافة مشترك جديد";
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
+
+    window.onload = loadData;
+</script>
 </body>
 </html>
