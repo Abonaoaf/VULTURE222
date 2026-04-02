@@ -1,186 +1,33 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة فولتشر | الإدارة السحابية الآمنة</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --primary: #007bff; --success: #28a745; --bg: #f4f7f6; --text: #2d3748; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; color: var(--text); }
-        .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .client-view { background: white; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 100%; max-width: 420px; overflow: hidden; display: none; align-self: center; }
-        .client-header { background: linear-gradient(135deg, var(--primary), #0056b3); color: white; padding: 25px; text-align: center; }
-        .info-body { padding: 20px; }
-        .info-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid #edf2f7; }
-        .label { color: #64748b; font-size: 0.7rem; font-weight: bold; }
-        .value { font-weight: 600; color: #1e293b; font-size: 0.9rem; }
-        
-        .timer-section { background: #f1f5f9; padding: 15px; border-radius: 16px; text-align: center; margin: 15px 0; border: 1px solid #e2e8f0; }
-        .timer-display { display: flex; justify-content: center; gap: 5px; margin-top: 10px; direction: ltr; }
-        .time-unit { background: white; padding: 8px 4px; border-radius: 8px; min-width: 45px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .time-num { display: block; font-size: 1rem; font-weight: bold; color: var(--primary); }
-        .time-lab { font-size: 0.6rem; color: #718096; }
-
-        .btn-contact { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: bold; margin-bottom: 10px; color: white; font-size: 0.9rem; }
-        
-        .admin-panel { width: 100%; max-width: 1100px; display: none; }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 15px 25px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .btn-add { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .clients-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .client-item { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); position: relative; }
-        .actions { display: flex; gap: 8px; margin-top: 15px; }
-        .btn-sm { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
-
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 95%; max-width: 500px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-group.full { grid-column: 1 / -1; }
-        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; background: #f8fafc; }
-    </style>
-</head>
-<body>
-
-<div id="loading" class="loading-overlay"><div class="spinner"></div><p>جاري مزامنة البيانات مع السحابة...</p></div>
-
-<div id="clientView" class="client-view">
-    <div class="client-header"><i class="fas fa-user-shield fa-3x"></i><h2 id="v-name" style="margin:10px 0 0 0"></h2></div>
-    <div class="info-body">
-        <div class="info-row"><div><span class="label">اسم المستخدم</span><br><span id="v-plan" class="value"></span></div></div>
-        <div class="info-row"><div><span class="label">كلمة السر</span><br><span id="v-pass" class="value"></span></div></div>
-        <div class="info-row"><div><span class="label">تاريخ الانتهاء</span><br><span class="value" id="v-end"></span></div></div>
-        <div class="timer-section"><span class="label">الوقت المتبقي لانتهاء الخدمة</span><div id="timer" class="timer-display"></div></div>
-        <a href="https://abonaoaf.github.io/apps/" class="btn-contact" style="background: #4338ca;"><i class="fas fa-th-large"></i> متجر تطبيقات فولتشر</a>
-        <a href="https://wa.me/966594393012" class="btn-contact" style="background:var(--whatsapp);" target="_blank"><i class="fab fa-whatsapp"></i> الدعم الفني المباشر</a>
-    </div>
-</div>
-
-<div id="adminPanel" class="admin-panel">
-    <div class="admin-header"><h2><i class="fas fa-cloud-upload-alt"></i> لوحة الإدارة السحابية</h2><button class="btn-add" onclick="openModal()">+ إضافة مشترك</button></div>
-    <div id="clientsList" class="clients-list"></div>
-</div>
-
-<div id="modal" class="modal">
-    <div class="modal-content">
-        <h3 style="text-align:center; color:var(--primary);">إدخال بيانات المشترك</h3><input type="hidden" id="editIndex">
-        <div class="form-grid">
-            <div class="form-group full"><label>اسم المشترك (للربط)</label><input type="text" id="in-name"></div>
-            <div class="form-group"><label>اسم المستخدم</label><input type="text" id="in-plan"></div>
-            <div class="form-group"><label>كلمة السر</label><input type="text" id="in-pass"></div>
-            <div class="form-group full"><label>تاريخ الانتهاء</label><input type="date" id="in-expiry"></div>
-        </div>
-        <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn-add" onclick="saveClient()" style="flex:2">حفظ ومزامنة</button><button onclick="closeModal()" style="flex:1; background:#eee; border:none; border-radius:10px; cursor:pointer;">إلغاء</button></div>
-    </div>
-</div>
-
 <script>
-    // --- حماية التوكن بنظام التشفير العكسي ---
-    const _0x_key = "Z2hwX3dpZld1QngzTUdaeGc5UFNadTRpajdtQmM5ekh6YzFmR2RTeg==";
-    const GITHUB_TOKEN = atob(_0x_key); 
-    
-    const GIST_ID = '91087ef5d5cd0bc27fca370654a108d1';
-    const FILE_NAME = 'clients.json';
-    let fullData = { clients: [] };
-    const params = new URLSearchParams(window.location.search);
+const DB_URL = "https://vulture-app-1efba-default-rtdb.firebaseio.com/.json";
 
-    async function init() {
-        showLoading(true);
-        try {
-            const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
-            });
-            const data = await res.json();
-            if (data.files && data.files[FILE_NAME]) {
-                fullData = JSON.parse(data.files[FILE_NAME].content);
-            }
-            const userParam = params.get('user');
-            if (userParam) {
-                const client = fullData.clients.find(c => c.name === decodeURIComponent(userParam));
-                if (client) { loadClientView(client); }
-                else { document.body.innerHTML = "<h1 style='text-align:center; margin-top:100px;'>عذراً، المشترك غير موجود</h1>"; }
-            } else { showAdminPanel(); }
-        } catch (e) { alert("حدث خطأ في جلب البيانات سحابياً."); }
-        showLoading(false);
+// وظيفة جلب البيانات عند فتح الصفحة
+async function loadClients() {
+    try {
+        const response = await fetch(DB_URL);
+        const data = await response.json();
+        fullData = data || { clients: [] };
+        renderClients(); // وظيفة عرض المشتركين في اللوحة
+    } catch (e) {
+        console.error("خطأ في جلب البيانات");
     }
+}
 
-    async function syncToCloud() {
-        showLoading(true);
-        try {
-            const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                method: 'PATCH',
-                headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(fullData, null, 2) } } })
-            });
-            if (!res.ok) throw new Error();
-        } catch (e) { alert("فشلت المزامنة! يرجى التأكد من صلاحيات التوكن."); }
-        showLoading(false);
+// وظيفة حفظ ومزامنة البيانات (بدون Token!)
+async function saveToCloud() {
+    showLoading(true);
+    try {
+        await fetch(DB_URL, {
+            method: 'PUT',
+            body: JSON.stringify(fullData)
+        });
+        alert("تم الحفظ والمزامنة في سحابة جوجل بنجاح ✅");
+    } catch (e) {
+        alert("حدث خطأ أثناء الحفظ، تأكد من اتصال الإنترنت");
     }
+    showLoading(false);
+}
 
-    function loadClientView(c) {
-        document.getElementById('clientView').style.display = 'block';
-        document.getElementById('v-name').innerText = "مرحباً: " + c.name;
-        document.getElementById('v-plan').innerText = c.plan || 'غير متوفر';
-        document.getElementById('v-pass').innerText = c.pass || 'غير متوفر';
-        document.getElementById('v-end').innerText = c.expiry;
-        setInterval(() => { document.getElementById('timer').innerHTML = getTimeHTML(calculateTime(c.expiry)); }, 1000);
-    }
-
-    function calculateTime(expiry) {
-        const diff = new Date(expiry).getTime() - new Date().getTime();
-        if (diff <= 0) return null;
-        const s = Math.floor(diff/1000), m = Math.floor(s/60), h = Math.floor(m/60), d = Math.floor(h/24);
-        return { يوم: d, ساعة: h%24, دقيقة: m%60, ثانية: s%60 };
-    }
-
-    function getTimeHTML(t) {
-        if (!t) return `<span style="color:red; font-weight:bold;">الخدمة منتهية</span>`;
-        return ['يوم','ساعة','دقيقة','ثانية'].map(l => `<div class="time-unit"><span class="time-num">${t[l]}</span><span class="time-lab">${l}</span></div>`).join('');
-    }
-
-    function showAdminPanel() { document.getElementById('adminPanel').style.display = 'block'; renderClients(); }
-
-    function renderClients() {
-        const list = document.getElementById('clientsList');
-        list.innerHTML = fullData.clients.map((c, i) => `
-            <div class="client-item">
-                <h3 style="color:var(--primary); margin:0;">${c.name}</h3>
-                <p style="font-size:0.8rem; color:#666;">ينتهي في: ${c.expiry}</p>
-                <div class="actions">
-                    <button class="btn-sm" style="background:#f0f7ff; color:#007bff;" onclick="copyLink('${c.name}')"><i class="fas fa-link"></i> الرابط</button>
-                    <button class="btn-sm" style="background:#fff1f2; color:#e11d48;" onclick="deleteClient(${i})"><i class="fas fa-trash"></i> حذف</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    async function saveClient() {
-        const data = {
-            name: document.getElementById('in-name').value.trim(),
-            plan: document.getElementById('in-plan').value,
-            pass: document.getElementById('in-pass').value,
-            expiry: document.getElementById('in-expiry').value
-        };
-        if(!data.name || !data.expiry) return alert("يرجى إكمال البيانات الأساسية.");
-        fullData.clients.push(data);
-        await syncToCloud(); renderClients(); closeModal();
-    }
-
-    async function deleteClient(i) { if(confirm("هل أنت متأكد من حذف هذا المشترك؟")) { fullData.clients.splice(i,1); await syncToCloud(); renderClients(); } }
-    
-    function copyLink(name) {
-        const url = `${window.location.origin}${window.location.pathname}?user=${encodeURIComponent(name)}`;
-        navigator.clipboard.writeText(url); alert("تم نسخ رابط المشترك بنجاح");
-    }
-
-    function openModal() { document.getElementById('modal').style.display = 'flex'; }
-    function closeModal() { document.getElementById('modal').style.display = 'none'; }
-    function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
-
-    init();
+// استدعاء الجلب عند التحميل
+window.onload = loadClients;
 </script>
-</body>
-</html>
