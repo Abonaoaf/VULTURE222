@@ -8,69 +8,66 @@
     <style>
         :root { --primary: #1e293b; --accent: #3b82f6; --bg: #f1f5f9; --white: #ffffff; --danger: #ef4444; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: var(--primary); line-height: 1.6; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: var(--primary); }
         
         .admin-card { background: var(--white); max-width: 800px; margin: 10px auto; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 20px; }
         
         .header-title { display: flex; flex-direction: column; align-items: center; text-align: center; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; padding-bottom: 15px; gap: 10px; }
-        .header-title h2 { margin: 0; font-size: 1.4rem; color: var(--primary); }
+        .header-title h2 { margin: 0; font-size: 1.4rem; }
         
-        .btn-export { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        .btn-export { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
         
         #loginSection { display: none; }
         
-        .client-form { display: flex; flex-direction: column; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
-        .client-form input { width: 100%; padding: 14px; border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 16px; transition: 0.3s; }
-        .client-form input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        
-        .btn-add { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-        
-        .client-item { background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .client-item:active { background: #f8fafc; }
-        .client-info strong { color: var(--accent); font-size: 1.1rem; display: block; margin-bottom: 4px; }
-        .client-info small { color: #64748b; font-size: 0.85rem; display: block; }
-        
-        .btn-delete { color: var(--danger); background: #fee2e2; border: none; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        
-        .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); display: flex; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; text-align: center; padding: 20px; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* تحسينات للشاشات الكبيرة */
+        /* تصميم الحقول ليدعم الجوال والكمبيوتر */
+        .client-form { display: grid; grid-template-columns: 1fr; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
         @media (min-width: 600px) {
+            .client-form { grid-template-columns: 1fr 1fr; }
             .header-title { flex-direction: row; justify-content: space-between; text-align: right; }
             .btn-export { width: auto; }
-            .client-form { grid-template-columns: 1fr 1fr; display: grid; }
-            .btn-add { grid-column: span 2; }
         }
+        
+        input { width: 100%; padding: 14px; border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 16px; font-family: inherit; }
+        .btn-add { grid-column: 1 / -1; background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 5px; }
+        
+        .client-item { background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .client-info strong { color: var(--accent); font-size: 1.1rem; display: block; margin-bottom: 4px; }
+        .client-info small { color: #64748b; font-size: 0.85rem; display: block; line-height: 1.5; }
+        
+        .btn-delete { color: var(--danger); background: #fee2e2; border: none; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); display: flex; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; text-align: center; padding: 20px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div id="loadingOverlay" class="loading-overlay">
     <div class="spinner"></div>
-    <div id="loadStatus" style="font-weight:bold; font-size:1.1rem;">جاري التحقق من السحابة...</div>
+    <div id="loadStatus" style="font-weight:bold;">جاري الاتصال بالسحابة...</div>
 </div>
 
 <div class="admin-card">
     <div class="header-title">
-        <h2><i class="fas fa-users-cog"></i> منصة فولتشر (VULTURE222)</h2>
-        <button class="btn-export" onclick="exportData()"><i class="fas fa-file-download"></i> تصدير النسخة الاحتياطية</button>
+        <h2><i class="fas fa-users-cog"></i> إدارة المشتركين (VULTURE222)</h2>
+        <button class="btn-export" onclick="exportData()"><i class="fas fa-file-download"></i> نسخة احتياطية</button>
     </div>
 
     <div id="loginSection">
         <div class="client-form">
-            <input type="text" id="cName" placeholder="اسم المشترك الكامل">
-            <input type="text" id="cPhone" placeholder="رقم الجوال">
+            <input type="text" id="cName" placeholder="اسم المشترك">
+            <input type="text" id="cPhone" placeholder="رقم الهاتف">
             <input type="text" id="cPass" placeholder="كلمة المرور">
             <input type="date" id="cExpiry" title="تاريخ الانتهاء">
-            <button class="btn-add" onclick="addClient()">إضافة المشترك الآن</button>
+            <button class="btn-add" onclick="addClient()">إضافة مشترك جديد</button>
         </div>
         <div id="clientsList"></div>
     </div>
 </div>
 
 <script>
+    // التشفير البرمجي للروابط والمفتاح
     const _0x12a = ["\x68\x74\x74\x70\x73\x3a\x2f\x2f\x76\x75\x6c\x74\x75\x72\x65\x2d\x61\x70\x70\x2d\x31\x65\x66\x62\x61\x2d\x64\x65\x66\x61\x75\x6c\x74\x2d\x72\x74\x64\x62\x2e\x66\x69\x72\x65\x62\x61\x73\x65\x69\x6f\x2e\x63\x6f\x6d\x2f\x2e\x6a\x73\x6f\x6e", "\x41\x62\x6f\x4e\x61\x77\x61\x66\x5f\x50\x6c\x61\x74\x66\x6f\x72\x6d\x5f\x32\x30\x32\x36"];
     const DB_URL = _0x12a[0];
     const ADMIN_KEY = _0x12a[1];
@@ -80,7 +77,7 @@
     async function init() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('admin') !== ADMIN_KEY) {
-            document.getElementById('loadStatus').innerHTML = "<span style='color:red;'>⚠️ خطأ: الوصول غير مصرح به.</span>";
+            document.getElementById('loadStatus').innerHTML = "<span style='color:red;'>⚠️ يرجى استخدام الرابط الإداري.</span>";
             return;
         }
 
@@ -95,14 +92,14 @@
             document.getElementById('loginSection').style.display = 'block';
             renderClients();
         } catch (e) {
-            document.getElementById('loadStatus').innerHTML = "فشل الاتصال! تأكد من القواعد (Rules) في Firebase.";
+            document.getElementById('loadStatus').innerHTML = "فشل الاتصال! تأكد من القواعد في Firebase.";
         }
     }
 
     function renderClients() {
         const list = document.getElementById('clientsList');
         if (globalData.clients.length === 0) {
-            list.innerHTML = "<center><p>لا يوجد مشتركين مسجلين.</p></center>";
+            list.innerHTML = "<center><p>لا يوجد مشتركين حالياً.</p></center>";
             return;
         }
         list.innerHTML = globalData.clients.slice().reverse().map((c, i) => {
@@ -111,8 +108,8 @@
             <div class="client-item">
                 <div class="client-info">
                     <strong>${c.name}</strong>
-                    <small><i class="fas fa-key"></i> ${c.pass} | <i class="fas fa-calendar-alt"></i> ${c.expiry}</small>
                     <small><i class="fas fa-phone"></i> ${c.phone || '-'}</small>
+                    <small><i class="fas fa-key"></i> ${c.pass} | <i class="fas fa-calendar-alt"></i> ينتهي: ${c.expiry}</small>
                 </div>
                 <button class="btn-delete" onclick="deleteClient(${originalIndex})"><i class="fas fa-trash"></i></button>
             </div>
@@ -121,14 +118,13 @@
 
     async function addClient() {
         const name = document.getElementById('cName').value;
-        const pass = document.getElementById('cPass').value;
-        if (!name || !pass) return alert("الاسم وكلمة المرور ضروريان!");
+        if (!name) return alert("يرجى إدخال الاسم");
 
         document.getElementById('loadingOverlay').style.display = 'flex';
         globalData.clients.push({
             name: name,
             phone: document.getElementById('cPhone').value,
-            pass: pass,
+            pass: document.getElementById('cPass').value,
             expiry: document.getElementById('cExpiry').value,
             start: new Date().toISOString().split('T')[0]
         });
@@ -138,7 +134,7 @@
     }
 
     async function deleteClient(index) {
-        if (confirm("هل تريد حذف هذا المشترك؟")) {
+        if (confirm("حذف المشترك؟")) {
             document.getElementById('loadingOverlay').style.display = 'flex';
             globalData.clients.splice(index, 1);
             await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(globalData) });
@@ -150,7 +146,7 @@
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(globalData));
         const dlAnchor = document.createElement('a');
         dlAnchor.setAttribute("href", dataStr);
-        dlAnchor.setAttribute("download", "vulture_backup_" + new Date().toLocaleDateString() + ".json");
+        dlAnchor.setAttribute("download", "vulture_backup.json");
         dlAnchor.click();
     }
 
